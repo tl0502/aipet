@@ -1,0 +1,33 @@
+[package]
+name = "aipet"
+version = "0.0.0"
+description = "AI 桌宠 — 由你亲手塑造、会主动关心你、能和你一起玩的 AI 桌宠"
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "aipet_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.dev]
+incremental = true
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

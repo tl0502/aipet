@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+pnpm-store/
+
+# Build artifacts
+dist/
+dist-ssr/
+*.local
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# IDE / OS
+.DS_Store
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+Thumbs.db
+
+# Claude Code local config (per-user, not for the public repo)
+.claude/
+
+# Env files (security)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Husky internals (managed by husky 9)
+.husky/_/
+
+# TypeScript
+*.tsbuildinfo
