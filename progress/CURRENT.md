@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`<待 commit> docs(progress): split B.3 across M1-M5 + place smart-passthrough improvements`
+- **Last commit**:`2ac789a docs(progress): split B.3 across M1-M5 + place smart-passthrough improvements`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
