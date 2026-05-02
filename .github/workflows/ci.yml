@@ -48,6 +48,26 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: PII static scan (roadmap §8.3, must be 0 hits)
+        shell: bash
+        run: |
+          # 禁止读取应用名 / 窗口标题 / 输入内容 / 麦克风(隐私边界 — 关键约束 4)
+          HITS=$(grep -rn "messages\.content\|getUserMedia\|GetForegroundWindow" src/ src-tauri/src/ || true)
+          if [ -n "$HITS" ]; then
+            echo "::error::PII scan failed (privacy boundary violation):"
+            echo "$HITS"
+            exit 1
+          fi
+          echo "PII scan: 0 hits ✓"
+
       - name: Cargo check
         working-directory: src-tauri
         run: cargo check
+
+      - name: Cargo test
+        working-directory: src-tauri
+        run: cargo test
+
+      # Vitest 占位:M2 实施 PersonaService / ChatService 时启用
+      # - name: Vitest
+      #   run: pnpm test
