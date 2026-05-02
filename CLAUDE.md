@@ -47,6 +47,29 @@
 | **遇到阻塞** | 写到 `progress/CURRENT.md § Blockers`,标 owner = 自己,期望解锁条件 |
 | **milestone 出口** | 调 `gate-checker` 生成 `progress/gate-m{N}.md`,出口达成则合 main + tag |
 
+## Agent 决策矩阵(任务类型 → 推荐 agent)
+
+| 任务类型 | 推荐 agent | 触发短语示例 |
+|---|---|---|
+| 实施 PRD §6 模块或 story | `module-implementer` | "实现 H 人格" / "继续 B.3.a" / "实施 A.6" |
+| 起草新 ADR(实施期发现新决策需求) | `adr-author` | "起草 ADR-016 ..." / "需要新决策..." |
+| 文档同步(6 份基线 + 路线图) | `doc-aligner` | "PRD §X 不准" / "升 v1.1" / "与现实偏差" |
+| Milestone 出口检查(M1-M5 末) | `gate-checker` | "M{N} 出口检查" / "milestone 出口报告" |
+
+## Agent IO 契约(单 main 接力,subagent 不互调)
+
+⚠️ Claude Code subagent **不能 spawn 其他 subagent** — 任何跨角色协作都从 main conversation 接力。
+
+**典型 chain pattern**:
+
+1. main → `module-implementer` 实施 → 完成 1 task → 更 `progress/CURRENT.md` + atomic commit → 返回 main
+2. 实施期**发现新决策需求**:main → `adr-author` 起草 Proposed → 用户签字 → 改 Accepted → main 接力 → `module-implementer` 继续
+3. 实施期**发现文档偏差**:main → `doc-aligner` 扫 6 份并同步 → main 接力 → `module-implementer` 继续
+4. **Milestone 末**:main → `gate-checker` 生成 `progress/gate-m{N}.md` → 出口达成 → 用户合 main + tag → 启动下一 milestone
+
+**所有 agent 共享的输入契约**:进入 session 必读 `CLAUDE.md` + `progress/CURRENT.md` + 角色定义文件(`.claude/agents/<role>.md`)。
+**所有 agent 共享的输出契约**:完成 1 task 必更 `progress/CURRENT.md`(`gate-checker` 例外,但写 `progress/gate-m{N}.md`)。
+
 ## 性能预算速查
 
 详 [BASELINE.md § 性能预算速查](docs/AIPET-obsidian/BASELINE.md):
