@@ -24,11 +24,11 @@
 
 | # | 文档 | 路径 | 行数 | 用途 |
 |---|---|---|---|---|
-| 1 | **PRD v1.0** | [需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md) | 838 | 业务需求、模块清单、KPI、版本计划 |
-| 2 | **架构 v1.0** | [架构设计/2026-05-01-system-architecture-v1.0.md](架构设计/2026-05-01-system-architecture-v1.0.md) | 1157 | 技术栈、服务边界、SQLite schema、IPC、文件布局 |
-| 3 | **人格设计 v1.0** | [角色与人格/2026-05-01-persona-design-v1.0.md](角色与人格/2026-05-01-persona-design-v1.0.md) | 593 | `.soul.md` schema、3 个内置人格、安全前缀拼装 |
-| 4 | **flows v1.0** | [需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md) | 1125 | Onboarding、状态机、关键流程图 |
-| 5 | **埋点 UAT v1.0** | [需求设计/2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md) | 550 | 事件字典、KPI 口径、UAT 验收场景 |
+| 1 | **PRD v1.1**(2026-05-02 升级)| [需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md) | 838+ | 业务需求、模块清单、KPI、版本计划;v1.1 加 §7.1.1 控制按钮区 + §7.2 三形态 + §7.12 接收源扩展 |
+| 2 | **架构 v1.1**(2026-05-02 升级)| [架构设计/2026-05-01-system-architecture-v1.0.md](架构设计/2026-05-01-system-architecture-v1.0.md) | 1157+ | 技术栈、服务边界、SQLite schema、IPC、文件布局;v1.1 加 hub 窗口 + ChatPanel 拆 view + ConversationStore + conversation.* IPC |
+| 3 | **人格设计 v1.0** | [角色与人格/2026-05-01-persona-design-v1.0.md](角色与人格/2026-05-01-persona-design-v1.0.md) | 593 | `.soul.md` schema、3 个内置人格、安全前缀拼装(v1.1 不变)|
+| 4 | **flows v1.1**(2026-05-02 升级)| [需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md) | 1125+ | Onboarding、状态机、关键流程图;v1.1 加 §2 形态选择分支 + §2.2 形态切换流 + §2.3 磁吸状态机 |
+| 5 | **埋点 UAT v1.0** | [需求设计/2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md) | 550 | 事件字典、KPI 口径、UAT 验收场景(v1.1 不变)|
 
 **实施路线图**:
 

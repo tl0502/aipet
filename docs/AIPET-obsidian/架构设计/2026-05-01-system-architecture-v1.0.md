@@ -1,16 +1,30 @@
-# AI 桌宠 系统架构设计 v1.0
+# AI 桌宠 系统架构设计 v1.1
 
-- 文档版本:v1.0(实施基线)
-- 创建日期:2026-05-01
+- 文档版本:v1.1(实施基线;在 v1.0 上做章节级增量,不压平)
+- 创建日期:2026-05-01(v1.0)/ 2026-05-02(v1.1 增量)
 - 替代:v0.4 及更早所有版本(v0.1/v0.2/v0.3/v0.4 已归档)
-- 适用阶段:MVP **实施期**(M1 起作为唯一权威架构源,与 PRD v1.0 对齐)
+- 适用阶段:MVP **实施期**(M1 起作为唯一权威架构源,与 PRD v1.1 对齐)
 - 关联:
-  - `需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md`
-  - `需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md`
+  - `需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md`(同步升 v1.1)
+  - `需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md`(同步升 v1.1)
   - `角色与人格/2026-05-01-persona-design-v1.0.md`
-  - `M0-ADRs/`(14 项 ADR 全部 Accepted,本文档关键决策直接引用编号)
+  - `M0-ADRs/`(15 项 ADR 全部 Accepted,本文档关键决策直接引用编号)
 
 > **关于本版本**:v1.0 是 v0.1 → v0.4 + 14 项 ADR 决策结果的"压平基线"。所有"v0.X 沿用 / 新增"等增量话术已展开,文档以连续叙事呈现实施期完整架构。
+
+## 变更摘要
+
+### v1.1(2026-05-02)
+
+实施期 M1 D3 经 [ADR-015](M0-ADRs/ADR-015-chat-three-modes.md) Accepted 后增量更新:
+
+- §2.2 窗口模型:加 `hub` 行(M4);`chat` 行注释磁吸/断开两态;`pet` 行注释含控制按钮区子组件(M2)
+- §3.1 模块清单:`ChatPanel` 拆为 ChatPanelView2 / ChatPanelView3 / HubChatTab 三 view 实现;新增 `ConversationStore` view-agnostic service
+- §4 SQLite schema:`conversations` 表加 `title` / `archived` 字段(用户多 conversation 命名 + 归档,M3 B.3.d)
+- §5.1 IPC:`chat.send` 强调 `conversation_id` 必填(原选填);新增 `conversation.list / create / rename / archive / delete / activate` 6 命令
+- §15 路线图:列出 B.3.a-f 跨 M1-M5 切片
+
+未变更:§0 / §1 / §2.1 / §2.3 / §3.2 / §4 其余表 / §5.2 / §5.3 / §6-§14 与 v1.0 一致。
 
 ## 0. 关键技术栈速查(M1 第一天即用)
 
@@ -199,15 +213,16 @@ WindowBuilder::new(app, "game_room", WindowUrl::App("game.html".into()))
 
 ### 2.2 窗口
 
-| 窗口 | 类型 | 默认状态 |
-|---|---|---|
-| `pet` | 透明、置顶、无边框、点击穿透除身体外区域 | 启动后常驻 |
-| `chat` | 普通、无边框、固定在桌宠附近 | 快捷键唤起 |
-| `settings` | 普通、独立 | 用户主动打开 |
-| `workshop` | 普通、独立(人格工坊 / 装扮工坊) | 用户主动打开 |
-| `onboarding` | 普通、模态 | 仅首启 |
-| `game_room` | 普通、固定 480×600 | `game.start` 后显示(ADR-012) |
-| `tray-menu` | 系统托盘(非窗口) | 常驻 |
+| 窗口 | 类型 | 默认状态 | 备注 |
+|---|---|---|---|
+| `pet` | 透明、置顶、无边框、点击穿透除身体外区域 | 启动后常驻 | 含控制按钮区子组件(M2 W3,§3.1 ChatPanelView 共用入口) |
+| `chat` | 普通、无边框、固定在桌宠附近 | 快捷键唤起 | 形态 2 磁吸浮窗(ADR-015):吸附/断开两态;失焦收缩到控制按钮区 |
+| `hub` | 普通、独立 1024×680(v1.1 新增,M4) | 用户主动打开 | 形态 1 总面板:对话/工坊/设置/游戏 launcher 4 tab(ADR-015) |
+| `settings` | (M4 起被 hub 设置 tab 整合) | 用户主动打开 | M3 期独立窗,M4 hub 上线后内嵌 |
+| `workshop` | (M4 起被 hub 工坊 tab 整合) | 用户主动打开 | M2 期独立窗,M4 hub 上线后内嵌 |
+| `onboarding` | 普通、模态 | 仅首启 | 与 hub 解耦(ADR-015 Q2),完成销毁 |
+| `game_room` | 普通、固定 480×600 | `game.start` 后显示(ADR-012) | hub 游戏 tab 调 `game_room.launch(id)` 启动(共生不替代,ADR-015 Q1) |
+| `tray-menu` | 系统托盘(非窗口) | 常驻 | |
 
 ### 2.3 多显示器与 DPI
 
@@ -221,11 +236,14 @@ WindowBuilder::new(app, "game_room", WindowUrl::App("game.html".into()))
 
 | 模块 | 责任 | 主要 API | 引入版本 |
 |---|---|---|---|
-| **PetRenderer**(前端) | 桌宠状态机渲染、动作、表情、配饰叠加 | `playMotion / setExpression / loadAccessories` | v0.1+ |
-| **ChatPanel**(前端) | 对话 UI、流式渲染 | 通过 IPC 调 ChatService | v0.1+ |
-| **PersonaWorkshop**(前端) | 人格工坊 GUI | 通过 IPC 调 PersonaService | v0.1+ |
-| **WardrobeStudio**(前端) | 装扮工坊 GUI | 通过 IPC 调 WardrobeService | M4 |
-| **GameRoom**(前端) | 游戏舱 UI(独立窗口) | 通过 IPC 调 GameEngine | M5 |
+| **PetRenderer**(前端) | 桌宠状态机渲染、动作、表情、配饰叠加;含**控制按钮区子组件**(v1.1 / M2,模块 A 延伸,ADR-015) | `playMotion / setExpression / loadAccessories` | v0.1+ |
+| **ChatPanelView2**(前端,v1.1) | 形态 2 磁吸浮窗的 view 实现(独立 chat 窗;M1 极简 → M2 完整磁吸) | 通过 IPC 调 ChatService + ConversationStore | v0.1+(M1 B.3.a / M2 B.3.c) |
+| **ChatPanelView3**(前端,v1.1) | 形态 3 漫画对话气泡 view(角色窗内子组件,沉浸式) | 同上 | M5(B.3.f) |
+| **HubChatTab**(前端,v1.1) | 形态 1 hub 内对话 tab view(含 conversations 列表) | 同上 | M4(B.3.e) |
+| **ConversationStore**(主进程,v1.1) | view-agnostic 数据层,管理多 conversation + 当前活跃(ADR-015) | `conversation.list / create / rename / archive / delete / activate` | M1 D5(I.1)+ M3 完整 UI |
+| **PersonaWorkshop**(前端) | 人格工坊 GUI(M4 起内嵌于 hub 工坊 tab)| 通过 IPC 调 PersonaService | v0.1+ |
+| **WardrobeStudio**(前端) | 装扮工坊 GUI(M4 起内嵌于 hub 工坊 tab)| 通过 IPC 调 WardrobeService | M4 |
+| **GameRoom**(前端) | 游戏舱 UI(独立窗口,hub 游戏 tab 做 launcher,ADR-012+ADR-015 共生) | 通过 IPC 调 GameEngine | M5 |
 | **ChatService**(主进程) | 对话编排、prompt 拼装、流式回复 | `chat.send / cancel / history` | v0.1+ |
 | **PersonaService**(主进程) | `.soul.md` 读写、校验、热切换 | `persona.list / get / save / import / activate` | v0.1+ |
 | **MemoryService**(主进程) | 用户偏好读写、增量更新 | `memory.list / set / delete` | v0.1+ |
@@ -334,10 +352,13 @@ CREATE TABLE nicknames (
 CREATE TABLE conversations (
   id TEXT PRIMARY KEY,            -- ULID
   persona_id TEXT NOT NULL,
+  title TEXT,                     -- 用户自定义会话名(v1.1 / M3 B.3.d 加;NULL 时 UI 显示"未命名 + 时间")
+  archived INTEGER NOT NULL DEFAULT 0,  -- 归档标记(v1.1 / M3 B.3.d 加)
   started_at TEXT NOT NULL,
   last_activity_at TEXT NOT NULL,
   is_sandbox INTEGER NOT NULL DEFAULT 0  -- 试聊沙盒标记
 );
+CREATE INDEX idx_conversations_active ON conversations(archived, last_activity_at DESC);  -- v1.1
 
 CREATE TABLE messages (
   id TEXT PRIMARY KEY,            -- ULID
@@ -544,6 +565,14 @@ CREATE TABLE error_logs (
 chat.send(input: string, conversationId?: string): Promise<{ messageId: string }>
 chat.cancel(messageId: string): Promise<void>
 chat.history(conversationId: string, limit: number): Promise<Message[]>
+
+// ==== Conversation 管理(v1.1 新增,ADR-015 ConversationStore)====
+conversation.list(): Promise<Array<{ id, title, persona_id, started_at, last_activity_at, archived }>>
+conversation.create(payload: { persona_id, title? }): Promise<{ id }>
+conversation.rename(id: string, title: string): Promise<void>
+conversation.archive(id: string, archived: boolean): Promise<void>
+conversation.delete(id: string): Promise<void>      // 物理删除消息 + 会话(用户主动),走 ON DELETE CASCADE
+conversation.activate(id: string): Promise<void>    // 设为当前活跃,持久化到 user_state.active_conversation_id
 
 // ==== 人格 ====
 persona.list(): Promise<PersonaMeta[]>

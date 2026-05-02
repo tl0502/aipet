@@ -129,6 +129,29 @@
   - IV 5 秒 readPixels alpha mask 对比 → telemetry(0.5d)→ m2.md **N.0** N 模块期 backup(应急,N 触发率 < 95% 才启用)
 - **理由**:不搁置 backlog → 真实 bug(III)在 M1 收口前修;精度改进(I)放在 N 模块前置位置一气呵成;埋点(IV)作为 KPI 应急工具不消耗常规带宽
 - **影响**:m1.md 总计从 12.5d → 13d(略紧但 D11 可吸收);Recently Completed 添加;无悬空 backlog
+- **Ref**:`2ac789a`
+
+### 2026-05-02 | A 步骤:PRD/架构/flows 升 v1.1
+
+- **决策**:依据 ADR-015 Accepted,在 v1.0 基线文档之上做章节级增量(BASELINE 工作流约定:章节级新增升 v1.1,不压平)
+- **PRD v1.1 改动**:
+  - §7.1 加 7.1.1 控制按钮区(模块 A 延伸,M2 W3 上线)
+  - §7.2 整段重写为 3 形态 + ConversationStore + 引用 ADR-015
+  - §7.12 接收源扩展:角色窗 + 形态 2/3 输入区 + hub 对话 tab 输入区
+  - 文档头加 v1.1 变更摘要
+- **架构 v1.1 改动**:
+  - §2.2 窗口模型表加 hub 行 + 注释 chat/pet/onboarding/game_room 与 ADR-015 关系
+  - §3.1 ChatPanel 拆 ChatPanelView2 / ChatPanelView3 / HubChatTab + 加 ConversationStore service
+  - §4 SQLite conversations 表加 title / archived 字段 + idx_conversations_active 索引
+  - §5.1 IPC 加 conversation.list / create / rename / archive / delete / activate 6 命令
+  - 文档头加 v1.1 变更摘要
+- **flows v1.1 改动**:
+  - §2 主流加形态选择注释 + 写入 messages 强调 conversation_id
+  - 新增 §2.2 形态切换流(形态 2 ↔ 形态 3 数据保留 view 切换)
+  - 新增 §2.3 磁吸状态机(吸附 ↔ 断开 + 失焦收缩 + 持久化坐标)
+  - 文档头加 v1.1 变更摘要
+- **不动**:人格 v1.0(与三形态正交)+ telemetry UAT v1.0(M2 加 conversation_switched 等再升)
+- **影响**:BASELINE.md 同步标 v1.1;后续实施 B.3.a-f 各 story 时已有完整文档锚点
 - **Ref**:本笔 commit
 
 ---
