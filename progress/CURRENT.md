@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`1bd45c7 docs(baseline): bump PRD/arch/flows to v1.1 per ADR-015`
+- **Last commit**:`435fc5e docs(roadmap): bump development-roadmap to v1.1 per ADR-015`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -35,7 +35,8 @@
 | capabilities/default.json 修复 frontend event listen | `15a0551` | 2026-05-02 |
 | ADR-015 对话面板三形态架构 起草 + Accepted | `2d4327c` + `8696fa2` | 2026-05-02 |
 | B 步骤:progress 拆 stories(B.3.a-f 跨 M1-M5 + 智能穿透 II/III/I/IV 归位) | `2ac789a` | 2026-05-02 |
-| A 步骤:PRD/架构/flows 升 v1.1(三形态 + ConversationStore + 控制按钮区) | 本笔 | 2026-05-02 |
+| A 步骤:PRD/架构/flows 升 v1.1(三形态 + ConversationStore + 控制按钮区) | `1bd45c7` | 2026-05-02 |
+| 漏升修补:开发路线图 v1.1(§3.2 模块矩阵 + 头部摘要) | `435fc5e` | 2026-05-02 |
 
 ---
 
