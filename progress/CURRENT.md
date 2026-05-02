@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`87134da feat(claude): add PreToolUse hook to protect _archive and accepted ADRs (vibecoding v2 笔 4/5)`
+- **Last commit**:`d1a65c7 fix(claude): rename protect-archive-and-adrs hook to .cjs (vibecoding v2 hook ESM 修复)`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
