@@ -1,47 +1,97 @@
-# Dependencies
+# ============================================================
+# AI 桌宠 — .gitignore
+# 分类:依赖 / 构建 / 测试 / 工具缓存 / IDE+OS / Claude /
+#       Obsidian / env / 日志 / Husky / 资源 / 运行时 / Bundle
+# ============================================================
+
+# === Dependencies ===
 node_modules/
 pnpm-store/
 
-# Build artifacts
+# === Build artifacts ===
 dist/
 dist-ssr/
 *.local
 
-# Tauri
+# === Tauri ===
 src-tauri/target/
 src-tauri/gen/
+# 注:src-tauri/Cargo.lock 必须入库(application 项目,锁定可重现构建)
 
-# IDE / OS
+# === Test / Coverage(M2+ 引入 vitest / E2E 时即生效)===
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.lcov
+
+# === 工具缓存 ===
+.vite/
+.cache/
+.turbo/
+.eslintcache
+*.tsbuildinfo
+
+# === IDE / OS ===
 .DS_Store
 .vscode/launch.json
 .idea/
+.fleet/
 *.swp
 *.swo
+*~
+*.bak
+*.tmp
+*.orig
+.~lock.*
 Thumbs.db
+ehthumbs.db
+desktop.ini
+*.lnk
 
-# Claude Code local config (per-user, not for the public repo)
-# 仅排除个人 allowlist;共享的 settings.json / agents/ 入仓库
+# === Claude Code 本地配置(每用户私有)===
+# 仅排除个人 allowlist 与 hook 调试日志;共享的 settings.json / agents/ / commands/ / hooks/ 入仓库
 .claude/settings.local.json
+.claude/hook-debug.log
 
-# Env files (security)
+# === Obsidian vault 配置(完全私人化,新协作者打开 vault 后自行配置)===
+docs/AIPET-obsidian/.obsidian/
+
+# === 环境变量(secret 边界)===
 .env
 .env.local
 .env.*.local
+.envrc
 
-# Logs
+# === 日志 ===
 *.log
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
 
-# Husky internals (managed by husky 9)
+# === Husky 内部(由 husky 9 管理)===
 .husky/_/
 
-# TypeScript
-*.tsbuildinfo
-
-# 角色资源(.vrm/.glb 体积大,本地放,不入仓库)
+# === 角色资源(.vrm/.glb/.fbx 体积大,本地放,不入仓库)===
 public/avatar/*.vrm
 public/avatar/*.glb
-# 历史:Live2D 资源已弃用(项目已迁移到 VRM,见 ADR-015 / ADR-002)
+public/avatar/*.fbx
+# 历史:Live2D 资源已弃用(项目已迁移到 VRM,见 ADR-002 / ADR-015)
 public/live2d/
+
+# === Local-first 隐私防御:运行时数据库(正常在 AppData,顶级防御性 ignore)===
+*.db
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite-journal
+
+# === Bundle 产物(防止手动 cp 出来的安装包入库)===
+*.msi
+*.exe
+*.dmg
+*.deb
+*.AppImage
+
+# === Rust 调试符号(防御性,正常在 target/ 内)===
+*.pdb
