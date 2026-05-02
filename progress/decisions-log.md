@@ -51,6 +51,35 @@
 - **附带修复**:VRM 加载失败时上报整 canvas 区域作 fallback hitbox(避免用户陷入"窗口完全穿透"死锁);`mouseup` 监听从 setup 顶层移到 `onMounted`(避免 SSR / HMR 边界问题)
 - **Ref**:`04f9abc`
 
+### 2026-05-02 | 智能穿透维持当前方案(业界对比结论)
+
+- **决策**:维持 `set_ignore_cursor_events + 60Hz GetCursorPos 轮询 + AABB hitbox + 5px 滞后区` 架构,不改用 SetWindowRgn / forward 钩子 / readPixels 像素精确等"理论更优"方案
+- **理由**:
+  1. **Tauri 业界主流**:Manasight 等 Tauri overlay 应用在 Win10/11/macOS Sonoma/Sequoia/Tahoe 多版本生产验证通过
+  2. **跨平台一致**:P2 macOS/Linux 扩展时无需重做(SetWindowRgn / WM_NCHITTEST 仅 Win,且 Chromium 嵌入下行为存疑)
+  3. **不违反隐私边界**(关键约束 4):Electron 风格的 `setIgnoreMouseEvents(forward: true)` 依赖全局鼠标钩子(`SetWindowsHookEx WH_MOUSE_LL`),不仅 Tauri 未实现(issue #6164),且会被某些 AV 软件误报(关键风险 r2)
+  4. **性能足够**:60Hz GetCursorPos 是 Win32 微秒级系统调用,实测 CPU < 0.1%
+- **备选改进选项**(详见 plan `a-5-immutable-aurora.md` Part A,无强优先级):
+  1. hitbox 多 sub-mesh 取并集(0.5d)— 边缘宽松度 10-20% → 5-10%
+  2. bbox 变化阈值降 IPC(0.2d)— idle 4Hz → < 1Hz
+  3. listen `tauri://moved` 立即上报(0.3d)— 拖动结束消除 250ms 错位
+  4. 5 秒一次 readPixels 真实 alpha mask 对比埋点(0.5d)— 不动 runtime
+- **不推荐**:SetWindowRgn(Chromium 兼容性未知,需 raw windows crate);Electron forward 钩子(违反隐私边界);60Hz readPixels(GPU readback 卡顿)
+- **Ref**:plan `a-5-immutable-aurora.md` Part A;Tauri issue #2090 / #6164 / #13070
+
+### 2026-05-02 | A.5 全局快捷键 M1 范围最小可行
+
+- **决策**:M1 阶段两个全局快捷键都做"最小可行占位",不做完整 BossKeyService / ChatPanel 集成
+  - `Ctrl+Alt+Space` → `toggle_pet()` + `emit("shortcut:chat")`
+  - `Ctrl+Shift+B` → `hide_pet()` + `emit("shortcut:boss-key")`
+- **理由**:
+  1. B.3 ChatPanel 与模块 K BossKeyService 分别在 M1 后期 / M2 实现,A.5 作为"快捷键链路"提前到 M1 D3 是为出口"快捷键稳定"的 KPI 服务
+  2. 占位实现已能让用户用 Ctrl+Alt+Space 唤起桌宠、用 Ctrl+Shift+B 临时隐藏 — 单机最小价值已达成
+  3. 抽出 `services/window_actions.rs` 作为 tray + shortcuts 的共享层,B.3/BossKeyService 接管时只需替换前端事件 handler,Rust 端无需重构
+- **影响**:Cargo 加 `tauri-plugin-global-shortcut`(target-cfg desktop);新建 `services/{window_actions, shortcuts}.rs`;tray.rs 重构去内部 helper;前端加 `useShortcutListener` composable 占位监听
+- **不做**:① 不加 capabilities/(Rust 端注册无需前端权限,M3 设置面板用户改键时再加)② 不装 npm `@tauri-apps/plugin-global-shortcut`(前端不调 register/unregister)③ 不做用户自定义键位(M3)
+- **Ref**:`da0a6ad`,plan `a-5-immutable-aurora.md` Part B
+
 ---
 
 ## 模板(新增条目时复制)

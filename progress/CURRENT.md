@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`fbe2672 feat(m1-d3): A.4 system tray with show/hide/quit + close-to-hide`
+- **Last commit**:`da0a6ad feat(m1-d3): A.5 global shortcuts (chat / boss-key minimal viable)`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -31,6 +31,7 @@
 | CI 加 PII 静态扫描 + cargo test | `89de30e` | 2026-05-02 |
 | A.3 DPR 缩放修复 + VRM-fail 拖动 fallback | `04f9abc` | 2026-05-02 |
 | A.4 系统托盘(显示/隐藏 + 退出 + 关窗拦截) | `fbe2672` | 2026-05-02 |
+| A.5 全局快捷键(`Ctrl+Alt+Space` / `Ctrl+Shift+B` 占位实现) | `da0a6ad` | 2026-05-02 |
 
 ---
 
@@ -44,11 +45,13 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **A.5 全局快捷键**(0.5 day)— `Ctrl+Alt+Space` 唤起对话 / `Ctrl+Shift+B` 摸鱼;复用 A.4 的 show/hide 路径
-2. **I.1 MigrationService**(1 day)— SQLite schema v1 初始化 + tauri-plugin-sql 集成,为 H/F/B 模块铺底
-3. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底
+1. **I.1 MigrationService**(1 day)— SQLite schema v1 初始化 + tauri-plugin-sql 集成,为 H/F/B 模块铺底
+2. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底
+3. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown(被 M.1 灵魂宣誓 + B.2 ChatService 依赖)
 
 详见 [m1.md](m1.md) 完整拆解。
+
+> **Backlog (智能穿透优化,无优先级)**:见 plan `a-5-immutable-aurora.md` Part A 改进选项菜单 — hitbox 多 sub-mesh 取并集 / bbox 阈值降 IPC / 拖动结束立即上报 / readPixels 周期校正埋点。当前轮询方案为 Tauri 业界主流,生产验证通过,M1 不优先动。
 
 ---
 
