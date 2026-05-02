@@ -4,6 +4,7 @@
   "description": "默认能力集 — pet 窗口可使用核心 IPC(事件 listen/emit、窗口操作等)。Tauri 2 中,即使前端只调用我们自己 invoke_handler 注册的命令,@tauri-apps/api 提供的 listen/emit 等内置工具走的是 plugin event 命令,需要本配置授权。",
   "windows": ["pet"],
   "permissions": [
-    "core:default"
+    "core:default",
+    "sql:default"
   ]
 }

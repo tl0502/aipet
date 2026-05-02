@@ -7,6 +7,26 @@ use commands::{ping, window};
 use services::window_actions::PET_WINDOW_LABEL;
 use state::AppState;
 use tauri::Manager;
+use tauri_plugin_sql::{Migration, MigrationKind};
+
+const DB_URL: &str = "sqlite:aipet.db";
+
+/// SQLite migrations(I.1 MigrationService,M1 D5)。
+///
+/// 每次新加 migration 必须:
+/// - 用单调递增的 version
+/// - **不修改**已发布的 migration(sqlx 已记录 hash,改动会导致用户启动失败 "migration X was previously applied but has been modified")
+/// - 新增字段用 ALTER TABLE 走新 migration(00X_xxx.sql)
+///
+/// schema 详见 docs/AIPET-obsidian/架构设计/...v1.0.md §4(已升 v1.1)。
+fn migrations() -> Vec<Migration> {
+    vec![Migration {
+        version: 1,
+        description: "init schema v1 per architecture v1.1 §4 (ADR-015 三形态共享 ConversationStore)",
+        sql: include_str!("../migrations/001_init.sql"),
+        kind: MigrationKind::Up,
+    }]
+}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -15,6 +35,11 @@ pub fn run() {
     }));
 
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(DB_URL, migrations())
+                .build(),
+        )
         .manage(AppState::default())
         .setup(|app| {
             eprintln!("[setup] reached");
