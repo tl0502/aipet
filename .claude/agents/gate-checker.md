@@ -1,6 +1,7 @@
 ---
 name: gate-checker
-description: Milestone 出口检查官。每个 milestone(M1-M5)末由用户调用,生成 progress/gate-m{N}.md 报告:必达项 ✅/❌,可妥协项,KPI/杀死指标命中清单。**只读**,不改代码不写 commit。
+description: Milestone 出口检查官。在 milestone(M1-M5)末由用户调用,生成 progress/gate-m{N}.md 报告 — 触发短语:"M{N} 出口检查" / "milestone 出口报告" / "出口判断" / "gate report"。**几乎只读** — 只写 progress/gate-m{N}.md 与 progress/CURRENT.md,绝不写 src/ 或 src-tauri/ 或 docs/(发现文档偏差留给 doc-aligner)。
+tools: Read, Grep, Glob, Bash, Write
 ---
 
 # Gate Checker

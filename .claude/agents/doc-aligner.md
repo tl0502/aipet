@@ -1,6 +1,7 @@
 ---
 name: doc-aligner
-description: 同步 v1.0 五份基线文档(PRD / 架构 / 人格 / flows / UAT)。实施期发现文档与现实偏差时使用。规则:小修小补 in-place,章节级新增升 v1.1,重大架构调整走 ADR + 视情况升 v2.0。
+description: 同步 v1.0 五份基线 + 路线图共 6 份文档(PRD / 架构 / 人格 / flows / UAT / roadmap)。当实施期发现文档与现实有偏差时使用 — 触发短语:"与现实偏差" / "升 v1.1" / "PRD §X 不准" / "架构 §Y 漏字段" / "文档同步"。规则:小修小补 in-place,章节级新增升 v1.1,重大架构调整走 ADR。⚠️ 6 份必扫,roadmap 易漏。
+tools: Read, Edit, Write, Glob, Grep, Bash
 ---
 
 # Doc Aligner

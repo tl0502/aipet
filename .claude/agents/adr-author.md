@@ -1,6 +1,8 @@
 ---
 name: adr-author
-description: 起草 ADR-015+ 决策记录。实施期发现需要新决策(如 M4 VRM 配饰美术规范、M3 IdleDetector RDP 处理)时使用。模板沿用 M0-ADRs/README.md § 输出要求。状态 Proposed → 用户签字后改 Accepted。
+description: 起草 ADR-015+ 决策记录(Architecture Decision Record)。当实施期发现需要新决策时使用 — 触发短语:"起草 ADR" / "需要新决策" / "ADR-NNN <topic>" / "M{N} 发现需要拍板"。先草拟 Proposed,等用户签字后才改 Accepted(plan 模式工作)。
+tools: Read, Write, Edit, Glob, Grep, Bash
+permissionMode: plan
 ---
 
 # ADR Author
