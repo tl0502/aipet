@@ -80,7 +80,7 @@
 |---|---|
 | 本地库初始化失败 | 重试 1 次 → 提示 + 显示 logs 路径 → 退出 |
 | 快捷键探测失败(系统拒绝注册) | Step 3 提示用户尝试其他组合,至少必须注册成功一组 |
-| Live2D 资源加载失败 | 降级为静态 PNG 立绘 + 上报错误 |
+| VRM 资源加载失败 | 降级为静态 PNG 立绘 + 上报错误 |
 
 ### 1.5 中途退出
 
@@ -236,7 +236,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
  ├── 之前的 pet_nickname 移到 pet_nickname_previous(供"恢复"按钮)
  └── emit 'nickname.changed' { which: 'pet', value: null }  ↓
 [前端:替换桌宠形象]
- ├── 卸载当前 Live2D 模型
+ ├── 卸载当前 VRM 模型
  ├── 加载目标人格 avatar.pack
  ├── 加载目标人格 voice_pack(切换音效包)
  └── 加载失败 → 静态降级 + 上报  ↓
@@ -723,7 +723,7 @@ emit IdleEvent::KeyboardBurst { events_per_min, duration_s: 30 }  ↓
 emit 'wardrobe.changed' { equipped: [...] }  ↓
 [Frontend PetCanvas]
  ├── 卸载当前 sticker layer
- ├── 加载新 sticker(含锚点,Live2D native 插槽,ADR-003)
+ ├── 加载新 sticker(含锚点,VRM humanoid bone attach,ADR-003)
  └── 渲染(≤ 500ms)  ↓
 [Telemetry] 'wardrobe_equipped'(仅含 accessory_categories,不含具体 ID)
 ```

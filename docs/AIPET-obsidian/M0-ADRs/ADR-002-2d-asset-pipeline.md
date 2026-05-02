@@ -1,6 +1,17 @@
 # ADR-002: 2D 桌宠资源管线
 
-- **状态**: Accepted
+> **⚠️ 状态变更 2026-05-01(post-M0)**:本 ADR 选定的 **Live2D Cubism 4** 路线已**废止**。项目改为 **3D VRM**(Three.js + `@pixiv/three-vrm`)。
+>
+> 触发原因:
+> 1. Live2D Cubism Core 4 → 5 → 6 存在破坏性 ABI 升级(`getDrawableRenderOrders` 改名等),`pixi-live2d-display` 上游 2022 年起停更,社区 fork(lipsyncpatch / mulmotion)未跟进 Core 6
+> 2. Live2D Editor Pro 商用授权年费 + 专业 Live2D 美术招聘门槛高,与"开源项目"的当前定位不符
+> 3. VRM 是 Pixiv / VRM Consortium 推的开放标准,`@pixiv/three-vrm` 官方维护,VRoid Studio 免费创作,VRoid Hub 万级免费模型生态
+>
+> 受影响 ADR:ADR-003(配饰 native 插槽 → VRM humanoid bone attach / VRMC_node_constraint)、ADR-004(Live2D motion ID → VRM animation clip 名)。
+>
+> 下方原决策内容保留作为历史背景,**实施期不再参考**。
+
+- **状态**: ~~Accepted~~ → **Superseded(2026-05-01)**
 - **决策日期**: 2026-05-01
 - **Owner**: M0 决策周(产品 + 美术 + 前端)
 - **Reviewers**: M0 决策周复审通过

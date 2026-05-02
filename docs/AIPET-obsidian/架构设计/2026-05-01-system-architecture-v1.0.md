@@ -29,7 +29,7 @@
 │   - Pinia (状态管理)
 │   - Vite (构建)
 │   - 组件库:Naive UI 或 Element Plus(M1 第一天 spike 后定)
-│   - Live2D Cubism 4 Web SDK (桌宠渲染,ADR-002)
+│   - Three.js + @pixiv/three-vrm (VRM 3D 桌宠渲染,ADR-002;原 Live2D Cubism 4 路线已 Superseded)
 │   - HTML5 Audio (声音表情播放,ADR-010)
 │
 ├─ 数据层
@@ -170,7 +170,7 @@ WindowBuilder::new(app, "game_room", WindowUrl::App("game.html".into()))
 |---|---|---|
 | 桌面框架 | Tauri 2.x | 体积小(~20MB)、内存占用低、Rust 主进程安全 |
 | 前端框架 | Vue 3 + TS + Pinia + Vite | ADR-001 |
-| 桌宠渲染 | Live2D Cubism 4 Web SDK | ADR-002,M0 末做 spike 验证 |
+| 桌宠渲染 | Three.js + @pixiv/three-vrm(VRM 3D) | ADR-002(原 Live2D 已 Superseded,M0 末因 Cubism Core 6 不兼容切换) |
 | 数据存储 | SQLite WAL + 文件系统 | 离线优先,无服务端依赖 |
 | 进程模型 | 单进程多窗口 | 内存预算下唯一选择(GameRoom 例外) |
 | LLM 调用 | 主进程发起,前端不直连 | API Key 不进 WebView |
@@ -178,7 +178,7 @@ WindowBuilder::new(app, "game_room", WindowUrl::App("game.html".into()))
 | 通信 | Tauri IPC(invoke + event) | 内置类型化 |
 | 默认 Provider | 零默认 + 6 个 preset | ADR-005 |
 | 安全前缀 | 通用核心 + 地区补充 v1.0 | ADR-006 |
-| 配饰管线 | Live2D native 插槽叠加 | ADR-003 |
+| 配饰管线 | VRM humanoid bone attach(原 Live2D 插槽 Superseded) | ADR-003 |
 | 物理动作 | 12 个核心动作 ID | ADR-004 |
 | 装扮 schema | 结构化对象 + JSON 列存储 | ADR-011 |
 | 游戏 UI | 独立游戏舱窗口 480×600 | ADR-012 |
@@ -212,7 +212,7 @@ WindowBuilder::new(app, "game_room", WindowUrl::App("game.html".into()))
 ### 2.3 多显示器与 DPI
 
 - 桌宠位置以**逻辑像素 + 屏幕标识**双键存储,重启或屏幕变化后正确还原。
-- Live2D 渲染按当前屏幕 DPI 计算缩放,避免模糊。
+- VRM 渲染按当前屏幕 DPI 计算 `renderer.setPixelRatio`,避免模糊。
 - GameRoom 首次显示居中,后续记忆位置。
 
 ## 3. 模块边界
@@ -742,7 +742,7 @@ trait LLMProvider {
 │       ├── my-cat.soul.md
 │       └── my-cat.assets\
 ├── assets\                     # 公共资源
-│   ├── avatars\live2d\
+│   ├── avatars\vrm\
 │   │   ├── momo-default\
 │   │   ├── joker-default\
 │   │   └── coach-default\
@@ -1062,7 +1062,7 @@ LLM 输出后 SecurityGuard **二次扫描**;命中违禁时:
 |---|---|
 | Tauri 主进程(Rust) | 60-80MB |
 | WebView2 | 100-140MB |
-| Live2D 模型 + 资源 | 40-60MB |
+| VRM 模型 + 贴图 | 60-100MB |
 | **合计目标** | **≤ 250MB** |
 
 ### 13.2 启动期优化要点
@@ -1120,7 +1120,7 @@ LLM 输出后 SecurityGuard **二次扫描**;命中违禁时:
 
 | 里程碑 | 主要交付 |
 |---|---|
-| **M0**(W0) | 14 项 ADR Accepted、3 个内置人格定稿、灵魂宣誓文案、安全前缀文案、声音包来源、配饰美术管线、装扮付费 schema、小游戏 UI 风格、LLM 游戏场景白名单、Live2D spike(启动 < 800ms / 内存 < 60MB / 配饰挂载点) |
+| **M0**(W0) | 14 项 ADR Accepted、3 个内置人格定稿、灵魂宣誓文案、安全前缀文案、声音包来源、配饰美术管线、装扮付费 schema、小游戏 UI 风格、LLM 游戏场景白名单、桌宠渲染 spike(原 Live2D 改为 VRM,启动 < 1500ms / 内存 < 150MB / 配饰挂载点) |
 | **M1**(W1-2) | Tauri + Vue 3 项目骨架(组件库 spike 后定)、主进程 IPC 框架、桌宠透明窗口、Onboarding(含 Soul Pledge)、ChatService MVP、PersonaService MVP、LivingPetService 骨架 + 自由活动初版、NicknameService MVP + 昵称设置 UI |
 | **M2**(W3-4) | TaskService 全功能(C/D/E)、PersonaService 试聊沙盒 + 工坊、心情图标 + 精力衰减/恢复、`pet_runtime_state` 持久化、BossKeyService(摸鱼模式)、InteractionRouter(hitbox 解析 + reaction_table + 抗议规则)、RAWINPUT 实现 spike(决断 N.4 是否降级) |
 | **M3**(W5-6) | LLM Provider(OpenAI 兼容)、SecurityGuard、MigrationService、UpdaterService、IdleDetector + ProactiveCareService(频率上限 + 安静时段)、FileDropHandler(文本类)、MilestoneService(首次 7/30 天)、LivingPetService 日常时段表(R.3) |
@@ -1133,11 +1133,11 @@ LLM 输出后 SecurityGuard **二次扫描**;命中违禁时:
 
 | 风险 | 影响 | 缓解 |
 |---|---|---|
-| Live2D Cubism 商业授权 | M0 选型 blocked | ADR-002 已选,M0 末 spike 验证;若失败降级到"整套皮肤"(配饰仅作整体替换) |
+| VRM 渲染商业授权(已无,VRM 是 MIT 开源标准) | 原 Live2D 商用授权风险已消除 | 切到 VRM 后,授权变量从风险登记移除;ADR-002 标 Superseded |
 | Tauri 2.x 在某些 AV 软件上的误报 | 用户启动失败 | 申请 Microsoft SmartScreen 信誉、提交 AV 厂商白名单 |
 | WebView2 缺失(老旧 Win10) | 应用打不开 | 安装包内置 WebView2 Bootstrapper |
 | DPAPI 跨用户失败 | 多用户机器混用 | DPAPI 本身就与用户绑定,作为 feature 而非 bug 暴露 |
-| Live2D 内存不可控 | 内存超 250MB | 提供"轻量贴图模式"作为兜底 |
+| VRM 渲染内存不可控 | 内存超 250MB | 提供"低多边形 / 低分辨率贴图"模式作为兜底;Three.js 可在运行时切换 LOD |
 | `GetLastInputInfo` 在 RDP 下行为不一致 | 主动关心误触发 | 检测会话类型 → RDP 场景下默认关闭模块 J |
 | 自由活动可能被部分用户视为"乱动" | D7 关闭率超阈值 | 上线后观察 KPI,> 15% 时考虑默认关闭"逛桌面"子项 |
 | Tauri file-drop 事件在某些版本桌面环境 inconsistent | 文件拖入功能跨版本断裂 | M0 锁定 Tauri 2.x 版本;M3 集成测试覆盖 |

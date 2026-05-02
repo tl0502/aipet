@@ -56,7 +56,7 @@ AI 桌宠定位在三者交集:**形态拉新、自主人格塑造留存、轻�
 
 ### 2.2 桌宠形态与对话
 
-6. **桌宠形态**:2D 桌宠。
+6. **桌宠形态**:**3D 桌宠(VRM)**。M0 决策周原选 2D Live2D,M0 末因 Cubism Core 6 ABI 破坏 + `pixi-live2d-display` 上游停更,切换到 VRM 标准(Three.js + `@pixiv/three-vrm`)。详见 ADR-002 顶部 Superseded 说明。
 7. **离线对话策略**:规则回复 + 人格化模板;P1-R3 通过本地 Ollama(ADR-014)。
 8. **数据保留默认**:对话默认本地保留 90 天,用户可清除。
 9. **敏感权限默认**:截图 / 剪贴板默认关闭,首次使用逐项授权。
@@ -84,8 +84,8 @@ AI 桌宠定位在三者交集:**形态拉新、自主人格塑造留存、轻�
 ### 2.6 M0 ADR 决策(21-34)
 
 21. **前端框架(ADR-001)**:Vue 3 + TypeScript + Pinia + Vite。组件库 Naive UI 或 Element Plus(M1 第一天 spike 后定)。
-22. **2D 资源管线(ADR-002)**:Live2D Cubism 4 + Web SDK。M0 末做 1 天集成 spike,验证启动 < 800ms / 内存 < 60MB / 配饰挂载点可行。
-23. **配饰美术管线(ADR-003)**:Live2D native 插槽叠加。每个模型预留 `accessory_head_slot / accessory_neck_slot / accessory_face_slot` 等参数;配饰为独立 PNG + JSON(锚点/缩放/z-index)。切换 < 500ms。
+22. **桌宠资源管线(ADR-002,Superseded)**:**VRM 3D**(Three.js + `@pixiv/three-vrm`)。原 Live2D Cubism 4 路线 M0 末废止(Cubism Core 6 ABI 不兼容 + 上游停更)。M1 spike:启动 < 1500ms / 内存 < 150MB / 配饰附着点(humanoid bone)可行。
+23. **配饰美术管线(ADR-003,Superseded)**:VRM humanoid bone attach + VRMC_node_constraint。每个 VRM 模型预留 head / neck / leftEye 等标准 bone 作为配饰挂载点;配饰为独立 .glb 节点(含 transform / scale / 父骨骼字段)。切换 < 500ms。
 24. **物理交互动作清单(ADR-004)**:12 个核心动作 ID — `head_pat / tilt_head / tail_wiggle / lean_in / surprised / fall_asleep / stretch / yawn / dizzy / protest / cheer / rub_eyes`。默认 reaction_table 详见 ADR-004,`.soul.md` 的 `# 反应配置` 区段可覆盖。
 25. **默认 LLM Provider(ADR-005)**:零默认 + 引导链接。Onboarding Step 6 不强制 API Key,首启 5 个本地能力(提醒/番茄/待办/摸鱼/物理交互)即可使用。设置中 6 个 preset:OpenAI / DeepSeek / Moonshot / 通义千问 / 本地 Ollama / 自定义。兼容矩阵:OpenAI 协议 100%(P0);Anthropic P1-R1;Gemini P1-R2。
 26. **安全前缀(ADR-006)**:通用核心(全球版,5 条:自伤/暴力/违法不指导、不冒充医疗/法律/金融、未成年保守、不泄露隐私、角色扮演不诱导混淆现实)+ 地区补充(`zh-CN` 010-82951332/12320-5;`international` US 988 / UK 116123 / EU 116123)。内容版本号 v1.0 写入 `consent.version`,变更时强制重确认。
@@ -682,7 +682,7 @@ LLM 游戏:
 - 总常驻内存 ≤ 250MB。
 - 内置音效包总大小 ≤ 5MB。
 - 内置装扮资源(4 套节气 + 8 件配饰)≤ 10MB。
-- 总安装包目标 ≤ 80MB(含 WebView2 Bootstrapper + Live2D 资源)。
+- 总安装包目标 ≤ 80MB(含 WebView2 Bootstrapper + 内置 VRM 资源)。
 
 ### 10.3 稳定性与质量
 

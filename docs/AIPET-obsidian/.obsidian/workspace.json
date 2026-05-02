@@ -185,6 +185,9 @@
   },
   "active": "c6311dc6b222272d",
   "lastOpenFiles": [
+    "2026-05-01-development-roadmap-v1.0.md.tmp.35928.1777661771369",
+    "2026-05-01-development-roadmap-v1.0.md.tmp.35928.1777661771275",
+    "M0-ADRs/ADR-015-live2d-renderer-fork.md",
     "BASELINE.md.tmp.39704.1777639826499",
     "2026-05-01-development-roadmap-v1.0.md",
     "BASELINE.md",
@@ -210,7 +213,6 @@
     "M0-ADRs/ADR-009-builtin-personas.md",
     "M0-ADRs/ADR-008-soul-pledge-copy.md",
     "M0-ADRs/ADR-007-llm-game-scenes.md",
-    "M0-ADRs/ADR-006-safety-prefix.md",
     "M0-ADRs",
     "_archive/角色与人格",
     "_archive/架构设计",

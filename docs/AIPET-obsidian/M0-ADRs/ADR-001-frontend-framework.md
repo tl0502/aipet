@@ -10,7 +10,7 @@
 ## 背景
 
 PRD v0.6 锁定 Tauri 2.x 作为桌面容器,但前端框架未定。前端工作量包括:
-- PetCanvas 桌宠渲染层(Live2D 集成)
+- PetCanvas 桌宠渲染层(VRM 3D 集成,Three.js)
 - 对话面板(流式渲染)
 - 设置 / 工坊 / 装扮工坊 / 游戏舱 4 个独立窗口
 - 心情图标、气泡、各类轻量交互组件
@@ -51,14 +51,14 @@ PRD v0.6 锁定 Tauri 2.x 作为桌面容器,但前端框架未定。前端工�
 - 对 Tauri 这种"内存敏感"的桌面应用友好
 
 **缺点**
-- 生态深度不及 Vue/React,Live2D / 流式 markdown 等中间件需要自己 bridge
+- 生态深度不及 Vue/React,Three.js / 流式 markdown 等中间件需要自己 bridge
 - 团队学习成本高,招聘难
 
 ## 我的倾向
 
 **🌟 倾向选项 A(Vue 3)**,关键理由:
 1. 桌面应用 UI 偏"组件化 + 表单 + 弹窗"风格,Vue SFC + 模板天然契合。
-2. Live2D Cubism Web SDK 在 Vue 项目里的集成示例多。
+2. Three.js / @pixiv/three-vrm 在 Vue 项目里的集成示例多(原 Live2D Cubism Web SDK 集成生态也丰富,M0 末改为 VRM 后该理由仍然成立)。
 3. 国内招人 Vue 占比更高(若团队是中国本地化方向)。
 
 但若团队**已有 React 资历**,选 B 也完全可行——团队熟悉度比框架本身更重要。
@@ -69,7 +69,7 @@ PRD v0.6 锁定 Tauri 2.x 作为桌面容器,但前端框架未定。前端工�
 
 **选定:Vue 3 + TypeScript + Pinia + Vite**(选项 A)。
 
-关键理由:Tauri WebView 桌面应用偏"组件化 + 表单 + 弹窗"模式,Vue 3 SFC + 模板语法天然契合;Live2D Cubism Web SDK 在 Vue 项目里的集成示例丰富;Pinia 与 Tauri IPC `listen` 事件订阅模型耦合点少,状态管理负担最小;中文社区生态对国内招人友好。
+关键理由:Tauri WebView 桌面应用偏"组件化 + 表单 + 弹窗"模式,Vue 3 SFC + 模板语法天然契合;Three.js + @pixiv/three-vrm 在 Vue 项目里的集成示例丰富(原 Live2D Cubism Web SDK 同样契合,M0 末渲染选型从 Live2D 切到 VRM 不影响本 ADR 决策);Pinia 与 Tauri IPC `listen` 事件订阅模型耦合点少,状态管理负担最小;中文社区生态对国内招人友好。
 
 **组件库**推迟到 M1 第一天 spike 后定:候选 **Naive UI**(更现代、暗色主题完整)与 **Element Plus**(成熟、国内用例多)。spike 维度:桌面 native 风格契合度、暗色支持、组件覆盖度(尤其是浮窗/气泡/Modal)。
 

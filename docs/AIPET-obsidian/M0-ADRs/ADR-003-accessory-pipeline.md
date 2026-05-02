@@ -1,6 +1,12 @@
 # ADR-003: 配饰美术管线兼容性
 
-- **状态**: Accepted
+> **⚠️ 状态变更 2026-05-01(post-M0)**:本 ADR 选定的"路径 A:Live2D + native 插槽"已随 ADR-002 一同**废止**(项目切到 VRM 3D)。设计意图(运行时叠加 0-3 件、切换 < 500ms、用户上传 P2)保留;实现路径改为 **VRM humanoid bone attach + VRMC_node_constraint**,配饰为独立 .glb / .vrma 节点,运行时挂到 head/neck/face 等骨骼。M4 实施前需输出新的"VRM 配饰美术规范"。
+>
+> 受影响:`accessory_*_slot` 参数命名作废(VRM 不需要,直接用 humanoid bone enum:`head` / `neck` / `leftEye` 等)。
+>
+> 下方原决策内容保留作为历史背景。
+
+- **状态**: ~~Accepted~~ → **Superseded(2026-05-01)**
 - **决策日期**: 2026-05-01
 - **Owner**: M0 决策周(产品 + 美术 + 前端)
 - **Reviewers**: M0 决策周复审通过

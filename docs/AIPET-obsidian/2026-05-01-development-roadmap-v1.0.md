@@ -88,7 +88,7 @@ gantt
 
     section M0 决策周(已完成)
     14 项 ADR Accepted    :done, m0a, 2026-05-01, 5d
-    Live2D spike(末日)   :done, m0b, after m0a, 2d
+    桌宠渲染 spike(VRM,末日) :done, m0b, after m0a, 2d
 
     section M1 壳层 + 对话
     项目脚手架 + 组件库 spike :active, m1a, 2026-05-08, 3d
@@ -163,7 +163,7 @@ graph TD
     Game[GameEngine<br/>Local+LLMRunner]
 
     %% 前端
-    PetCanvas[PetCanvas<br/>Live2D]
+    PetCanvas[PetCanvas<br/>VRM]
     ChatPanel[ChatPanel]
     Workshop[人格工坊]
     WardrobeStudio[装扮工坊]
@@ -244,7 +244,7 @@ graph TD
 
 ```mermaid
 graph LR
-    A[M0:Live2D spike<br/>ADR-002] --> B[M1:Tauri + Vue 骨架<br/>组件库 spike]
+    A[M0:VRM 渲染 spike<br/>ADR-002 Superseded] --> B[M1:Tauri + Vue 骨架<br/>组件库 spike]
     B --> C[M1:PersonaService MVP<br/>+ ChatService MVP]
     C --> D[M1:Onboarding + Soul Pledge<br/>ADR-008]
 
@@ -276,7 +276,7 @@ graph LR
 
 | 节点 | 时机 | 决策内容 | 失败降级 |
 |---|---|---|---|
-| **Live2D spike** | M0 末(已完成) | 启动 < 800ms / 内存 < 60MB / 配饰挂载点可行 | 降级"整套皮肤"(配饰仅整体替换,牺牲 KPI 11.17) |
+| **桌宠渲染 spike(VRM)** | M0 末(已完成,从 Live2D 切换) | 启动 < 1500ms / 内存 < 150MB / 配饰挂载点(humanoid bone)可行 | 降级"整套皮肤"(配饰仅整体替换,牺牲 KPI 11.17) |
 | **组件库 spike** | M1 W1 第 1 天 | Naive UI vs Element Plus 哪个更适合 | 默认 Naive UI |
 | **RAWINPUT spike** | M2 内 | 实现成本是否可控 | 降级"快速 idle 切换"近似信号(N.4 体验弱化) |
 | **配饰美术管线就绪** | M4 启动前 | 8 件配饰 + 4 套节气资源齐 | 推迟节气皮肤到 M4 末或 P1-R1 |
@@ -292,7 +292,7 @@ graph LR
 ### 5.1 M0 决策周(已完成,2026-05-01)
 
 **入口**:产品立项;PRD v0.6/v0.7 草稿;14 项 ADR 草案。
-**出口**:✅ 14 项 ADR 全部 Accepted;✅ 五份对齐文档压平到 v1.0;✅ Live2D spike 通过(假设)。
+**出口**:✅ 14 项 ADR 全部 Accepted;✅ 五份对齐文档压平到 v1.0;✅ 桌宠渲染 spike 通过(原 Live2D 改为 VRM)。
 
 ```mermaid
 graph LR
@@ -300,7 +300,7 @@ graph LR
     B --> C[决策签字]
     C --> D[Accepted<br/>+ 后果 + 实施动作]
     D --> E[3 内置人格<br/>.soul.md 草稿]
-    D --> F[Live2D spike<br/>1 天]
+    D --> F[VRM 渲染 spike<br/>1 天]
     D --> G[安全前缀 v1.0<br/>法务签字]
     D --> H[文档压平 v1.0]
 ```
@@ -317,7 +317,7 @@ graph TD
     A1 --> B1[Tauri 透明窗口<br/>点击穿透]
     A1 --> C1[Pinia + IPC 框架]
 
-    B1 --> D1[PetCanvas<br/>Live2D 集成]
+    B1 --> D1[PetCanvas<br/>VRM 集成]
     C1 --> E1[PersonaService MVP<br/>加载 _builtin/momo]
     C1 --> F1[MemoryService + Nickname]
 
@@ -339,19 +339,19 @@ graph TD
 **主交付物**:
 - Tauri + Vue 3 + TS + Pinia + Vite 项目脚手架
 - 桌宠透明窗口(置顶 / 无边框 / 点击穿透)
-- Live2D 默默 momo 渲染(内置 3 个人格,但 M1 只用 momo)
+- VRM 默默 momo 渲染(内置 3 个人格,但 M1 只用 momo)
 - 对话面板 + 流式渲染 + OpenAI Provider
 - Onboarding 6 步(灵魂宣誓 + Provider 引导 [可跳过])
 - U.1 桌宠昵称 + U.2 用户昵称 UI
 
 **风险**:
 - 组件库 spike 可能拖延 2 天 → 缓解:M1 D1 必须做完
-- Live2D 集成异常 → M0 spike 已验证,降级路线已留
+- VRM 集成异常 → M0 spike 已验证(原 Live2D 切换到 VRM),降级路线已留
 - Onboarding 法务文案最终版滞后 → 用 ADR-008 v1.0 定版
 
 ### 5.3 M2 任务三件套 + 物理交互(W3-W4,2 周)
 
-**入口**:M1 出口达成;Live2D 配饰挂载点已验证。
+**入口**:M1 出口达成;VRM humanoid bone 配饰挂载点已验证。
 **出口**:三大模块(C/D/E)离线可用;N hitbox 反应触发率 ≥ 95%;摸鱼快捷键稳定;人格切换不丢记忆。
 
 ```mermaid
@@ -453,7 +453,7 @@ graph TD
     Pre1 -->|是| A4[WardrobeService<br/>list_inventory + equip]
     Pre1 -->|否| Block1[阻塞:推迟节气皮肤]
 
-    A4 --> B4[配饰锚点叠加<br/>Live2D native 插槽]
+    A4 --> B4[配饰锚点叠加<br/>VRM humanoid bone attach]
     A4 --> C4[节气推送<br/>每天 00:01 检查]
     A4 --> D4[付费 schema 预埋<br/>tier=paid 强制过滤]
 
@@ -551,7 +551,7 @@ gantt
     dateFormat YYYY-MM-DD
     axisFormat W%U
     section M0
-    Live2D 商用授权评估       :crit, r1, 2026-05-01, 5d
+    Live2D 商用授权评估(已废止,切到 VRM) :done, r1, 2026-05-01, 5d
     section M1
     Tauri 在 AV 软件误报      :r2, 2026-05-08, 14d
     WebView2 缺失(老 Win10)  :r3, 2026-05-08, 14d
@@ -563,7 +563,7 @@ gantt
     Tauri file-drop 跨版本断裂 :r7, 2026-06-05, 14d
     Milestone 时区跨日漏触发   :r8, 2026-06-05, 14d
     section M4
-    Live2D 内存超 250MB       :r9, 2026-06-19, 14d
+    VRM 渲染内存超 250MB       :r9, 2026-06-19, 14d
     节气推送被认为打扰         :r10, 2026-06-19, 14d
     DPAPI 跨用户切换异常       :r11, 2026-06-19, 14d
     section M5
@@ -575,7 +575,7 @@ gantt
 
 | # | 风险 | 显化时机 | 影响 | 缓解 |
 |---|---|---|---|---|
-| 1 | Live2D 商用授权 | M0 末 spike | M0 选型 blocked | 已选 Live2D(ADR-002),M0 spike 通过;失败时降级"整套皮肤" |
+| 1 | ~~Live2D 商用授权~~(已废止,切 VRM) | M0 末 spike | M0 选型 blocked | 已切 VRM(MIT 开源,无授权风险),原 Live2D 路线作废,详见 ADR-002 顶部 Superseded 说明 |
 | 2 | Tauri AV 软件误报 | M1 测试 | 用户启动失败 | SmartScreen 信誉申请、AV 厂商白名单 |
 | 3 | WebView2 缺失 | M1 安装期 | 应用打不开 | 安装包内置 Bootstrapper |
 | 4 | RAWINPUT 实现复杂 | M2 spike | N.4 键鼠协同延期 | 降级"快速 idle 切换"近似信号(不影响其他 N 子项) |
@@ -583,7 +583,7 @@ gantt
 | 6 | GetLastInputInfo RDP 不一致 | M3 测试 | 主动关心误触发 | RDP 场景默认关闭模块 J |
 | 7 | Tauri file-drop 跨版本断裂 | M3 集成测试 | 文件拖入功能断裂 | M0 锁定 Tauri 2.x 版本,M3 集成测试覆盖 |
 | 8 | Milestone 时区跨日 | M3 + M5 | 重复/漏触发 | 本地时区 + 启动期幂等检查 + `milestones.id` PK 唯一 |
-| 9 | Live2D 内存超 250MB | M4-M5 性能调优 | 性能预算超 | "轻量贴图模式"兜底 |
+| 9 | VRM 渲染内存超 250MB | M4-M5 性能调优 | 性能预算超 | LOD 切换 / 低多边形 / 低分辨率贴图模式兜底 |
 | 10 | 节气推送被认为打扰 | M5 灰度 | 装扮使用率(KPI 11.17)不达标 | 默认每节气仅推 1 次;用户拒绝当年不再推 |
 | 11 | DPAPI 跨用户切换异常 | M3 + M5 测试 | 多用户机器混用 | 作为 feature 暴露(账户绑定) |
 | 12 | LLM 游戏 token 月成本 | M5 上线后 | 用户账单爆炸 | 单次 2000 token 上限 + 设置可见消耗统计 + 告警 |
@@ -596,7 +596,7 @@ gantt
 ```mermaid
 stateDiagram-v2
     [*] --> M0
-    M0 --> Gate0: 14 ADR Accepted +<br/>Live2D spike 通过
+    M0 --> Gate0: 14 ADR Accepted +<br/>VRM 渲染 spike 通过
     Gate0 --> M1
     Gate0 --> Hold0: 任一未达
     Hold0 --> M0: 修复
@@ -632,7 +632,7 @@ stateDiagram-v2
 
 | Milestone | 必达项 | 可妥协项(标注后通过) |
 |---|---|---|
-| M0 → M1 | ADR 全部 Accepted | Live2D spike 数据(可用 M1 W1 补) |
+| M0 → M1 | ADR 全部 Accepted | VRM 渲染 spike 数据(可用 M1 W1 补) |
 | M1 → M2 | 核心 UI 跑通 + Onboarding 完整 | API Key 引导 UX(M2 调) |
 | M2 → M3 | C/D/E 离线 + 摸鱼稳定 + 物理交互 hitbox | 人格工坊 UI 美化(M3 调) |
 | M3 → M4 | 主动关心频率上限 + 文件拖入文本类 + 安全前缀 | 自动更新签名(M5 决) |
@@ -738,7 +738,7 @@ graph TD
 
 ## 10. 给项目主理的 5 条速读
 
-1. **关键路径不容延期**:M0 Live2D spike → M2 RAWINPUT spike → M4 美术 + 音效就绪 → M5 法务签字 → 灰度。任一节点延期 → 整体延期。
+1. **关键路径不容延期**:M0 VRM 渲染 spike → M2 RAWINPUT spike → M4 美术 + 音效就绪 → M5 法务签字 → 灰度。任一节点延期 → 整体延期。
 2. **风险已知 13 项**,前置缓解都在 ADR 里。监控时机分散在 M0/M2/M3/M4/M5,每周看一次风险表。
 3. **每个 milestone 2 周**,共 10 周。M0 已完成,M1 立即可启动。
 4. **灰度 2 周不可砍**:W1 内部 10 人 → W2 内测 100 人。不要直接开放外部下载。
@@ -758,7 +758,7 @@ M1 第 1 天:
         IPC 框架草搭 + 第一个 ping/pong
 
 M1 第 1 周末:
-  桌宠透明窗口 + Live2D momo 渲染 + 基础点击
+  桌宠透明窗口 + VRM momo 渲染 + 基础点击
   ChatService MVP(单 Provider)+ 流式渲染
   MemoryService + NicknameService 骨架
 

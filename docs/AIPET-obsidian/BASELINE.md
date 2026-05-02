@@ -45,8 +45,8 @@
 | # | ADR | 决策摘要 |
 |---|---|---|
 | 001 | [前端框架](M0-ADRs/ADR-001-frontend-framework.md) | Vue 3 + TypeScript + Pinia + Vite,组件库 M1 spike 后定 |
-| 002 | [2D 资源管线](M0-ADRs/ADR-002-2d-asset-pipeline.md) | Live2D Cubism 4 + Web SDK,M0 末做集成 spike |
-| 003 | [配饰美术管线](M0-ADRs/ADR-003-accessory-pipeline.md) | Live2D native 插槽叠加,切换 < 500ms |
+| 002 | [3D 资源管线(VRM)](M0-ADRs/ADR-002-2d-asset-pipeline.md) | **VRM 3D**(Three.js + `@pixiv/three-vrm`)。原 Live2D 路线在 M0 末因 Cubism Core 6 不兼容废止,详见 ADR-002 顶部 Superseded 说明 |
+| 003 | [配饰美术管线](M0-ADRs/ADR-003-accessory-pipeline.md) | VRM humanoid bone attach + VRMC_node_constraint,切换 < 500ms(原 Live2D 插槽方案 Superseded) |
 | 004 | [物理交互动作](M0-ADRs/ADR-004-interaction-actions.md) | 12 个核心动作 ID,默认 reaction_table 可被 .soul.md 覆盖 |
 | 005 | [默认 LLM Provider](M0-ADRs/ADR-005-default-llm-provider.md) | 零默认 + 6 个 preset(OpenAI / DeepSeek / Moonshot / 通义 / Ollama / 自定义) |
 | 006 | [安全前缀](M0-ADRs/ADR-006-safety-prefix.md) | 通用核心(全球 5 条)+ 地区补充(zh-CN / international) |
@@ -77,7 +77,7 @@ ADR 索引与依赖图:[M0-ADRs/README.md](M0-ADRs/README.md)。
 
 | 里程碑 | 周次 | 主要交付 | 退出条件 |
 |---|---|---|---|
-| **M0** | W0 | 14 项 ADR Accepted、3 个内置人格定稿、Live2D spike | ADR 全部签字(已完成 2026-05-01) |
+| **M0** | W0 | 14 项 ADR Accepted、3 个内置人格定稿、桌宠渲染 spike(原计划 Live2D,实际改为 VRM) | ADR 全部签字(已完成 2026-05-01) |
 | **M1** | W1-2 | Tauri + Vue 3 项目骨架、桌宠壳层、对话、Onboarding、灵魂宣誓、自由活动初版、U.1/U.2 昵称、组件库 spike | 核心 UI 跑通;快捷键稳定;崩溃率 < 3% |
 | **M2** | W3-4 | 任务三件套(C/D/E)、人格系统、心情/精力、摸鱼、N 物理交互(含 RAWINPUT spike) | 三大模块离线可用;N hitbox 触发率 ≥ 95% |
 | **M3** | W5-6 | 记忆、隐私治理、自动更新、情境关心(J)、文件拖入(L)、R.3 桌宠日常 | 安全模板覆盖;桌宠日常分布合理 |

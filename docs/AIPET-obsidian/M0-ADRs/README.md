@@ -33,8 +33,8 @@
 | # | ADR | 影响模块 | 优先级 | 状态 | Owner |
 |---|---|---|---|---|---|
 | 001 | [前端框架选型](ADR-001-frontend-framework.md) | 全部 UI | 🔴 P0 | Accepted | M0 决策周 |
-| 002 | [2D 桌宠资源管线](ADR-002-2d-asset-pipeline.md) | A/I/N/O | 🔴 P0 | Accepted | M0 决策周 |
-| 003 | [配饰美术管线兼容性](ADR-003-accessory-pipeline.md) | O 装扮 | 🔴 P0 | Accepted | M0 决策周 |
+| 002 | [2D 桌宠资源管线](ADR-002-2d-asset-pipeline.md) | A/I/N/O | 🔴 P0 | **Superseded**(原 Live2D,M0 末改为 VRM 3D) | M0 决策周 |
+| 003 | [配饰美术管线兼容性](ADR-003-accessory-pipeline.md) | O 装扮 | 🔴 P0 | **Superseded**(随 ADR-002 切换到 VRM bone attach) | M0 决策周 |
 | 004 | [物理交互动作清单](ADR-004-interaction-actions.md) | N 物理交互 | 🔴 P0 | Accepted | M0 决策周 |
 | 005 | [默认 LLM Provider](ADR-005-default-llm-provider.md) | B 对话 | 🔴 P0 | Accepted | M0 决策周 |
 | 006 | [安全前缀文案](ADR-006-safety-prefix.md) | SecurityGuard | 🔴 P0 | Accepted | M0 决策周(法务签字) |

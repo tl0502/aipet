@@ -79,7 +79,7 @@ author: user
 created: 2026-05-01
 updated: 2026-05-01
 avatar:
-  pack: live2d/momo-default
+  pack: vrm/momo-default
   scale: 1.0
 
 # 装扮与音效(可选)
