@@ -20,7 +20,8 @@ src-tauri/gen/
 Thumbs.db
 
 # Claude Code local config (per-user, not for the public repo)
-.claude/
+# 仅排除个人 allowlist;共享的 settings.json / agents/ 入仓库
+.claude/settings.local.json
 
 # Env files (security)
 .env
