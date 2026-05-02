@@ -20,6 +20,10 @@ thiserror = "2"
 chrono = { version = "0.4", features = ["serde"] }
 windows = { version = "0.61", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }
 
+# 仅桌面平台启用全局快捷键(避免 mobile 编译报错;M1-M5 不上 mobile,提前规范)
+[target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+
 [features]
 custom-protocol = ["tauri/custom-protocol"]
 

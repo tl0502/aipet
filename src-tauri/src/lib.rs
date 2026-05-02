@@ -4,10 +4,9 @@ mod services;
 mod state;
 
 use commands::{ping, window};
+use services::window_actions::PET_WINDOW_LABEL;
 use state::AppState;
 use tauri::Manager;
-
-const PET_WINDOW_LABEL: &str = "pet";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -21,6 +20,7 @@ pub fn run() {
             eprintln!("[setup] reached");
             crate::services::cursor_tracker::spawn(app.handle().clone());
             crate::services::tray::setup(app.handle())?;
+            crate::services::shortcuts::setup(app.handle())?;
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window(PET_WINDOW_LABEL) {
                 window.open_devtools();

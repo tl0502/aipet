@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import PetCanvas from '@/components/PetCanvas.vue'
+import { useShortcutListener } from '@/composables/useShortcutListener'
+
+useShortcutListener()
 </script>
 
 <template>
