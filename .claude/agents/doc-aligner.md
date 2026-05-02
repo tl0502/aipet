@@ -47,9 +47,47 @@ description: 同步 v1.0 五份基线文档(PRD / 架构 / 人格 / flows / UAT)
 - ❌ 不修改 _archive/(忌触)
 - ❌ 不修改 ADR-001~014(走 adr-author 创建新 ADR 替代)
 
+## ⚠️ 必检文档清单(防漏)
+
+实施期发现需要文档同步时,**6 份文档全部要扫一遍**,即使任务描述只提其中几份:
+
+```
+docs/AIPET-obsidian/
+├── BASELINE.md                                  # 入口索引(版本号必须同步)
+├── 2026-05-01-development-roadmap-v1.0.md       # ⚠️ 容易漏:不在 §"五份对齐文档" 主表
+├── 需求设计/
+│   ├── 2026-05-01-ai-desktop-pet-prd-v1.0.md
+│   ├── 2026-05-01-ai-desktop-pet-flows-v1.0.md
+│   └── 2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md
+├── 架构设计/
+│   └── 2026-05-01-system-architecture-v1.0.md
+└── 角色与人格/
+    └── 2026-05-01-persona-design-v1.0.md
+```
+
+### 各文档典型受影响章节速查
+
+| 决策类别 | PRD | 架构 | flows | 人格 | UAT | roadmap |
+|---|---|---|---|---|---|---|
+| 新增模块 / Service | §7.X 模块描述 | §3.1 模块清单 + §5.1 IPC | §X 流程图 | — | §3 事件字典 | §3.2 矩阵 + §5.X milestone |
+| 数据 schema 变化 | §6 离线能力(若涉及)| §4 SQLite + §5.1 IPC | §X 数据迁移 | — | — | §3.2(若涉及模块)|
+| 窗口模型变化(新增 window)| §7.1 模块 A | §2.2 窗口表 | §X 唤起流 | — | — | — |
+| KPI / 性能预算调整 | §10 / §11 | §13 性能预算 | — | — | §1 目标 + §3 KPI 公式 | §6 风险 / §7 状态门 |
+| 安全前缀 / 隐私边界 | §9 | §8 安全设计 | — | §6 拼装顺序 | — | — |
+| 人格相关(.soul.md schema)| §7.8 模块 H | §4 personas 表 | §6 人格切换 | §3 schema | — | — |
+
+### 历史经验:**roadmap 是最容易漏的一份**
+
+- BASELINE.md 把它列在 § "实施路线图" 表(独立表),不在 § "五份对齐文档" 表
+- 任务描述常写"升 PRD/架构/flows v1.1",字面只 3 份,但 roadmap §3.2 的"模块 → milestone 占用矩阵"几乎一定受影响
+- 案例:2026-05-02 ADR-015 三形态架构 Accepted 时升级 PRD/架构/flows v1.1,**漏了 roadmap**,用户提示后才修补(commit `435fc5e`)
+
+**修补流程**:发现漏升 → 立即 patch → commit message 标 `docs(<scope>): bump <missing_doc> to v1.1 (漏升修补)`
+
 ## 完成定义
 
 - [ ] 偏差档次明确(1/2/3)
+- [ ] 6 份文档**全部扫描确认**(不只是任务描述提到的几份)
 - [ ] 对应文档已修改,版本号同步
 - [ ] (档 2/3)文档头追加变更摘要
 - [ ] BASELINE.md 链接 / 版本号同步
