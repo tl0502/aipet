@@ -38,3 +38,9 @@ yarn-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# 角色资源(.vrm/.glb 体积大,本地放,不入仓库)
+public/avatar/*.vrm
+public/avatar/*.glb
+# 历史:Live2D 资源已弃用(项目已迁移到 VRM,见 ADR-015 / ADR-002)
+public/live2d/
