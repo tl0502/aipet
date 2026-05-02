@@ -1,16 +1,29 @@
-# AI 桌宠 开发路线图 v1.0
+# AI 桌宠 开发路线图 v1.1
 
-- 文档版本:v1.0(高层路线图)
-- 创建日期:2026-05-01
-- 适用阶段:M0 完成 → M1 启动前(实施期入口)
+- 文档版本:v1.1(高层路线图;在 v1.0 上做章节级增量,不压平)
+- 创建日期:2026-05-01(v1.0)/ 2026-05-02(v1.1 增量)
+- 适用阶段:M0 完成 → M1 启动前(实施期入口);v1.1 反映 M1 D3 期 ADR-015 决策
 - 输出形式:Mermaid 可视化 + 表格
 - 关联:
   - [BASELINE.md](BASELINE.md)
-  - [需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md)
-  - [架构设计/2026-05-01-system-architecture-v1.0.md](架构设计/2026-05-01-system-architecture-v1.0.md)
-  - [M0-ADRs/](M0-ADRs/)
+  - [需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-prd-v1.0.md)(已升 v1.1)
+  - [架构设计/2026-05-01-system-architecture-v1.0.md](架构设计/2026-05-01-system-architecture-v1.0.md)(已升 v1.1)
+  - [需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md](需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md)(已升 v1.1)
+  - [M0-ADRs/](M0-ADRs/)(15 项 Accepted)
 
 > **关于本文档**:基于 PRD v1.0 §13 与架构 v1.0 §15 的 M1-M5 实施任务对照,展开为可视化路线图。**日期为相对周次锚定**(M0 = W0,2026-05-01 起);实际启动日由项目主理决定。
+
+## 变更摘要
+
+### v1.1(2026-05-02)
+
+实施期 M1 D3 经 [ADR-015](M0-ADRs/ADR-015-chat-three-modes.md)《对话面板三形态架构》Accepted 后增量:
+
+- §3.2 模块矩阵:`ChatService + LLMProvider` 行展开为 B.3.a-f 跨 M1-M5;新增 `ConversationStore` / `控制按钮区(模块 A 延伸)` / `hub 总面板` 行
+- §5.2-5.6 各 milestone:**Mermaid 图保持 v1.0**(高层视角不变);story 级增量(B.3.a-f / 智能穿透 II/III/I/IV / 入口前置 TBD)由 [progress/m1-5.md](../../progress/) 作为权威细节源
+- 头部关联文档行加 v1.1 标记
+
+未变更:§1 三引擎 / §3.1 模块 DAG Mermaid / §4 关键路径 / §6 风险 / §7 状态门 / §8-§11 工作流 与 v1.0 一致。
 
 ---
 
@@ -218,23 +231,30 @@ graph TD
 
 ### 3.2 模块 → milestone 占用矩阵
 
+> **v1.1 增量**:`ChatService + LLMProvider` 行已按 ADR-015 拆 B.3.a-f 跨 M1-M5;新增 `ConversationStore` / `控制按钮区(模块 A 延伸)` / `hub 总面板` 三行。
+
 | 模块 | M1 | M2 | M3 | M4 | M5 |
 |---|---|---|---|---|---|
 | **基础设施**(Migration / Crypto / Telemetry / Network / Updater) | 骨架 | — | 完善 | — | 灰度埋点 |
 | **PersonaService** | MVP(加载/激活) | 工坊 + 沙盒 | — | — | — |
 | **MemoryService + NicknameService** | MVP | — | — | — | — |
-| **ChatService + LLMProvider** | MVP(单 Provider) | — | OpenAI 兼容完整 + SecurityGuard | — | — |
+| **ChatService + LLMProvider** | MVP(单 Provider)+ **B.3.a 形态 2 极简** | — | OpenAI 兼容完整 + SecurityGuard + **B.3.d 多 conversation** | — | — |
+| **ConversationStore**(v1.1 / ADR-015) | 表 schema 就位(I.1) | — | 完整 CRUD UI(随 B.3.d) | — | — |
+| **控制按钮区**(模块 A 延伸,v1.1) | — | **B.3.b 骨架**(0.5d) | — | — | — |
+| **ChatPanel 形态 2 磁吸**(v1.1) | (B.3.a 极简内含) | **B.3.c 磁吸交互** | — | — | — |
+| **hub 总面板**(形态 1,v1.1) | — | — | — | **B.3.e 4 tab** | — |
+| **形态 3 漫画气泡**(v1.1) | — | — | — | — | **B.3.f 角色窗内** |
 | **TaskService**(C/D/E) | — | 全量 | — | — | — |
 | **LivingPetService** | 自由活动初版 | mood/energy + 持久化 | DailySchedule(R.3) | — | — |
 | **IdleDetector** | — | (N.4 spike) | 主体 + ProactiveCare | — | — |
 | **ProactiveCareService** | — | — | 主体 + 频率上限 + 安静时段 | — | — |
-| **BossKeyService** | — | 摸鱼模式 | — | — | — |
-| **FileDropHandler** | — | — | 文本类全功能 | — | — |
+| **BossKeyService** | (A.5 占位 emit) | 摸鱼模式接管 | — | — | — |
+| **FileDropHandler** | — | — | 文本类全功能 + **接收源扩展(角色窗/各形态输入区,ADR-015)** | — | — |
 | **MilestoneService** | — | — | 首次 7/30 天 | + user_anniversary | — |
 | **InteractionRouter**(模块 N) | — | hitbox + reaction_table + 抗议 | — | — | — |
 | **WardrobeService**(模块 O) | — | — | — | 配饰 + 节气 + 付费预埋 | — |
 | **VoiceEffectPlayer**(模块 P) | — | — | — | 音效 + 静音时段 | — |
-| **GameEngine**(模块 Q) | — | — | — | — | 全量(Local 3 + LLM 2) |
+| **GameEngine**(模块 Q) | — | — | — | — | 全量(Local 3 + LLM 2)+ **hub 游戏 tab launcher** |
 
 ---
 
@@ -309,6 +329,8 @@ graph LR
 
 **入口**:M0 出口达成。
 **出口**:核心 UI 跑通;快捷键稳定(`Ctrl+Alt+Space` / `Ctrl+Shift+B`);崩溃率 < 3%;Onboarding 6 步可走通到主态。
+
+> **v1.1 注**:M1 实际拆 stories 见 [progress/m1.md](../../progress/m1.md):A.1-A.5 已完成 / A.6 智能穿透收口 polish(II+III)/ I.1 / I.2 / H.1 / F.1 / F.2 / B.1 / B.2 / **B.3.a 形态 2 极简版**(单 conversation + 流式,见 ADR-015)。下方 Mermaid 保留 v1.0 高层视角。
 
 ```mermaid
 graph TD

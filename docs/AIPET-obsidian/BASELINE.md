@@ -34,7 +34,7 @@
 
 | 文档 | 路径 | 用途 |
 |---|---|---|
-| **开发路线图 v1.0** | [2026-05-01-development-roadmap-v1.0.md](2026-05-01-development-roadmap-v1.0.md) | M0-M5 甘特图、模块依赖 DAG、关键路径、风险时间线、状态门、工作流约定 |
+| **开发路线图 v1.1**(2026-05-02 升级) | [2026-05-01-development-roadmap-v1.0.md](2026-05-01-development-roadmap-v1.0.md) | M0-M5 甘特图、模块依赖 DAG、关键路径、风险时间线、状态门、工作流约定;v1.1 加 §3.2 矩阵 ChatService 拆 B.3.a-f + ConversationStore / 控制按钮区 / hub 行 |
 
 ---
 
