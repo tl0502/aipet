@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`435fc5e docs(roadmap): bump development-roadmap to v1.1 per ADR-015`
+- **Last commit**:`cf1c0c5 feat(m1-d3): I.1 MigrationService SQLite v1 schema (24 tables per arch §4)`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -37,6 +37,7 @@
 | B 步骤:progress 拆 stories(B.3.a-f 跨 M1-M5 + 智能穿透 II/III/I/IV 归位) | `2ac789a` | 2026-05-02 |
 | A 步骤:PRD/架构/flows 升 v1.1(三形态 + ConversationStore + 控制按钮区) | `1bd45c7` | 2026-05-02 |
 | 漏升修补:开发路线图 v1.1(§3.2 模块矩阵 + 头部摘要) | `435fc5e` | 2026-05-02 |
+| **C 步骤起步:I.1 MigrationService**(24 表 SQLite v1 + tauri-plugin-sql 集成) | `cf1c0c5` | 2026-05-02 |
 
 ---
 
@@ -50,9 +51,9 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **I.1 MigrationService**(1 day)— SQLite schema v1 初始化 + tauri-plugin-sql 集成,为 H/F/B 模块铺底
-2. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底
-3. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown(被 M.1 灵魂宣誓 + B.2 ChatService 依赖)
+1. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底;写入 `secrets` 表的 ciphertext
+2. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown,写入 `personas` 表
+3. **F.1 MemoryService MVP**(0.5 day)— `messages` 表 CRUD + 90 天清理 + summary 占位
 
 详见 [m1.md](m1.md) 完整拆解。
 
