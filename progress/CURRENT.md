@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`<待 commit> docs(adr): accept ADR-015 chat three-mode architecture`
+- **Last commit**:`8696fa2 docs(adr): accept ADR-015 chat three-mode architecture`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
