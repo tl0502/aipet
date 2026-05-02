@@ -28,7 +28,7 @@
 
 ## 14 项 ADR 总表
 
-按依赖顺序(blocker 优先)排列。前 12 项为 M0 内必须完成,13-14 可推迟到 M1-M3。
+按依赖顺序(blocker 优先)排列。前 12 项为 M0 内必须完成,13-14 可推迟到 M1-M3。**ADR-015+ 为实施期新起草**(沿用同流程,Proposed → Accepted)。
 
 | # | ADR | 影响模块 | 优先级 | 状态 | Owner |
 |---|---|---|---|---|---|
@@ -46,6 +46,7 @@
 | 012 | [小游戏 UI 风格](ADR-012-game-ui-style.md) | Q 小游戏 | 🟢 P0 | Accepted | M0 决策周 |
 | 013 | [签名分发(EV 证书)](ADR-013-code-signing.md) | 发布期 | 🟢 P1 | Accepted | M0 决策周(M5+ 再评估升级) |
 | 014 | [本地小模型候选](ADR-014-local-small-model.md) | P1-R3 探索 | 🟢 P2 | Accepted(方向) | M0 决策周(P1-R3 重 benchmark) |
+| 015 | [对话面板三形态架构](ADR-015-chat-three-modes.md) | B 对话 / A 控制按钮 / G/H/Q 整合 | 🔴 P0 | **Proposed**(M1 D3 起草,M1 D5 前需 Accepted) | M1 D3 实施期 |
 
 🔴 = blocker(本项不定无法启动相关模块) / 🟡 = 重要(可能影响美术/法务排期) / 🟢 = 可推迟
 
