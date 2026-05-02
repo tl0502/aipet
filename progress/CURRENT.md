@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`cf1c0c5 feat(m1-d3): I.1 MigrationService SQLite v1 schema (24 tables per arch §4)`
+- **Last commit**:`87134da feat(claude): add PreToolUse hook to protect _archive and accepted ADRs (vibecoding v2 笔 4/5)`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -38,6 +38,7 @@
 | A 步骤:PRD/架构/flows 升 v1.1(三形态 + ConversationStore + 控制按钮区) | `1bd45c7` | 2026-05-02 |
 | 漏升修补:开发路线图 v1.1(§3.2 模块矩阵 + 头部摘要) | `435fc5e` | 2026-05-02 |
 | **C 步骤起步:I.1 MigrationService**(24 表 SQLite v1 + tauri-plugin-sql 集成) | `cf1c0c5` | 2026-05-02 |
+| vibecoding 工程支撑层 v2(agent frontmatter 升 2026 spec + 决策矩阵/IO 契约 + 2 slash commands + protect hook) | `6c67da2` → `87134da`(4 笔) | 2026-05-02 |
 
 ---
 
@@ -65,6 +66,7 @@
 
 - 2026-05-02:vibecoding 工程支撑层落地(CLAUDE.md / .claude/agents/ / progress/),协作模式定为单人 × 串行 session 文件驱动
 - 2026-05-02:hitbox 坐标转换收口在 Rust 侧(读 `outer_position` + `scale_factor`),前端只发 CSS 像素 — 高 DPI 下 cursor_tracker 失效根因修复
+- 2026-05-02:vibecoding 工程支撑层 v2(agent frontmatter 升 2026 spec + 决策矩阵 + IO 契约 + 2 slash commands + PreToolUse hook 拦截 _archive 与 ADR-001~014)
 
 ---
 

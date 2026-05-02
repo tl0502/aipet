@@ -154,6 +154,22 @@
 - **影响**:BASELINE.md 同步标 v1.1;后续实施 B.3.a-f 各 story 时已有完整文档锚点
 - **Ref**:本笔 commit
 
+### 2026-05-02 | vibecoding 工程支撑层 v2 升级
+
+- **决策**:在 v1(`a0910f2`)基础上为 4 个 agent 升 frontmatter 到 2026 spec(tools 白名单 + adr-author permissionMode: plan + description 加触发短语);CLAUDE.md 加 § Agent 决策矩阵 + § Agent IO 契约;新增 `/sync-progress` 与 `/check-baseline` 2 个 slash commands;新增 `.claude/hooks/protect-archive-and-adrs.js` PreToolUse hook 拦截 `_archive/` 与 ADR-001~014 的误改
+- **理由**:
+  1. 现状 4 agent frontmatter 只有 name + description,**全部**缺 tools / permissionMode 字段,命中 anti-pattern `MISSING_TOOLS_RESTRICTION`(prompt 里说"只读"但仅靠 LLM 记忆)与 `MISSING_TRIGGER`(description 缺 "Use proactively when X")
+  2. CLAUDE.md 没有 agent 决策矩阵,新会话要翻 4 个 .md 才知道选哪个角色;subagent 不能 spawn subagent 但没说明 main 接力规则,命中 `WEAK_INTER_AGENT_CONTRACTS`
+  3. 守则"❌ 不修改 _archive/ 与 ADR-001~014"全靠 LLM 记忆,无 hook 兜底,CI 也只能事后发现
+- **影响**:
+  - `.claude/agents/{adr-author,doc-aligner,gate-checker,module-implementer}.md` frontmatter +tools / permissionMode / trigger
+  - `.claude/commands/{sync-progress,check-baseline}.md` 新增
+  - `.claude/hooks/protect-archive-and-adrs.js` 新增 + `.claude/settings.json` 加 PreToolUse 配置
+  - `CLAUDE.md` +§ Agent 决策矩阵 +§ Agent IO 契约
+- **不做**:新增 agent(code-reviewer / perf-budget-checker / test-author);skills 化(性能预算速查独立);agent teams 启用(已 env var 启用但维持文件驱动);model 字段(全部 inherit);disallowedTools 字段(用 tools 白名单更稳)
+- **依据**:Anthropic 2026 subagent spec — Tool Restriction Best Practices / Hooks 文档 / Slash Commands 文档
+- **Ref**:`6c67da2`(笔 1) / `e89d660`(笔 2) / `42fce14`(笔 3) / `87134da`(笔 4)
+
 ---
 
 ## 模板(新增条目时复制)
