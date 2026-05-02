@@ -38,9 +38,9 @@
 
 ---
 
-## 14 项 ADR(全部 Accepted,2026-05-01)
+## 15 项 ADR(M0 14 项 Accepted + M1 起草 1 项 Accepted,2026-05-01 / 05-02)
 
-[M0-ADRs/](M0-ADRs/) 目录下的 14 份决策记录,实施期不可绕过。
+[M0-ADRs/](M0-ADRs/) 目录下的 15 份决策记录,实施期不可绕过。
 
 | # | ADR | 决策摘要 |
 |---|---|---|
@@ -58,6 +58,7 @@
 | 012 | [小游戏 UI](M0-ADRs/ADR-012-game-ui-style.md) | 独立游戏舱 GameRoom 窗口(480 × 600) |
 | 013 | [代码签名](M0-ADRs/ADR-013-code-signing.md) | M5 灰度期不签名 + user education,EV/OV 推到 M5+ |
 | 014 | [本地小模型 P1-R3](M0-ADRs/ADR-014-local-small-model.md) | 调用本地 Ollama,推荐 Qwen2.5-3B-Instruct-Q4 |
+| 015 | [对话面板三形态架构](M0-ADRs/ADR-015-chat-three-modes.md) | hub 总面板 + 磁吸浮窗 + 漫画气泡 + ConversationStore 共享(M1 D3 起草,Accepted 2026-05-02) |
 
 ADR 索引与依赖图:[M0-ADRs/README.md](M0-ADRs/README.md)。
 

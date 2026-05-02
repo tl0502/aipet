@@ -95,6 +95,25 @@
 - **影响**:`src-tauri/capabilities/default.json` 新增;`gen/schemas/capabilities.json` 在下次 build 时自动重新生成;无 runtime 行为变化(只解封被默认 deny 的 IPC)
 - **Ref**:`15a0551`
 
+### 2026-05-02 | ADR-015 对话面板三形态架构(升级为 ADR)
+
+- **决策**:对话面板设计为 **3 形态共存 + ConversationStore 共享数据层** 架构,而非原 PRD §7.2 单一对话面板
+  - 形态 1 hub 总面板(独立 Tauri 窗 `hub`,M4 实施)— 整合工坊 / 设置 / 对话 / 游戏 launcher
+  - 形态 2 磁吸浮窗(独立 Tauri 窗 `chat`,M1 极简 → M2 完整)— 默认形态,Ctrl+Alt+Space 唤起,可吸附到角色窗或断开自由布置
+  - 形态 3 漫画对话气泡(角色窗子组件,M5 实施)— 沉浸式,通过控制按钮区激活
+- **理由**:对话是高频核心交互;桌宠产品差异化在沉浸式陪伴,单一对话窗浪费 VRM 视觉资产;view-agnostic ConversationStore 是工程上正交抽象,长期演进可复用
+- **影响**:
+  - B.3 单 story 拆为 6 子 story(B.3.a-B.3.f),跨 M1-M5 渐进交付
+  - SQLite schema 加 `conversations` 表 + `messages.conversation_id` 索引
+  - 控制按钮区作为模块 A 延伸(不属 B 模块),为 M2+ 多按钮预留扩展位
+  - hub 与 GameRoom 共生(launcher 模式),ADR-012 不变
+  - Onboarding 保持独立窗口,与 hub 解耦
+- **TBD**(不阻塞 M1):
+  - Q4 磁吸物理阈值(M2 W3 启动 B.3.c 前定)
+  - Q5 控制按钮区按钮清单(M2 W3 启动 B.3.b 前定)
+  - TBD-3 hub 与磁吸 chat 窗 conversation 同步语义(M4 启动 B.3.e 前定)
+- **Ref**:`docs/AIPET-obsidian/M0-ADRs/ADR-015-chat-three-modes.md`(commit `2d4327c` 起草 + Accepted)
+
 ---
 
 ## 模板(新增条目时复制)

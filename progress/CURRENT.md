@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`15a0551 fix(m1-d3): add capabilities/default.json for frontend event listen`
+- **Last commit**:`<待 commit> docs(adr): accept ADR-015 chat three-mode architecture`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -33,6 +33,7 @@
 | A.4 系统托盘(显示/隐藏 + 退出 + 关窗拦截) | `fbe2672` | 2026-05-02 |
 | A.5 全局快捷键(`Ctrl+Alt+Space` / `Ctrl+Shift+B` 占位实现) | `da0a6ad` | 2026-05-02 |
 | capabilities/default.json 修复 frontend event listen | `15a0551` | 2026-05-02 |
+| ADR-015 对话面板三形态架构 起草 + Accepted | `2d4327c` + 本笔 | 2026-05-02 |
 
 ---
 
