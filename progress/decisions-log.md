@@ -77,8 +77,23 @@
   2. 占位实现已能让用户用 Ctrl+Alt+Space 唤起桌宠、用 Ctrl+Shift+B 临时隐藏 — 单机最小价值已达成
   3. 抽出 `services/window_actions.rs` 作为 tray + shortcuts 的共享层,B.3/BossKeyService 接管时只需替换前端事件 handler,Rust 端无需重构
 - **影响**:Cargo 加 `tauri-plugin-global-shortcut`(target-cfg desktop);新建 `services/{window_actions, shortcuts}.rs`;tray.rs 重构去内部 helper;前端加 `useShortcutListener` composable 占位监听
-- **不做**:① 不加 capabilities/(Rust 端注册无需前端权限,M3 设置面板用户改键时再加)② 不装 npm `@tauri-apps/plugin-global-shortcut`(前端不调 register/unregister)③ 不做用户自定义键位(M3)
+- **不做**:① 不装 npm `@tauri-apps/plugin-global-shortcut`(前端不调 register/unregister)② 不做用户自定义键位(M3)
 - **Ref**:`da0a6ad`,plan `a-5-immutable-aurora.md` Part B
+
+### 2026-05-02 | capabilities/default.json 必加(更正先前误判)
+
+- **更正对象**:同日"A.5 全局快捷键 M1 范围最小可行"中"不加 capabilities" 的判断
+- **背景**:A.5 部署后用户在控制台看到 `event.listen not allowed. Permissions associated with this command: core:event:allow-listen`
+- **根因分析**:
+  - Rust 端 `app.emit()` 与 `listen_global()` 不走 capability 校验(crate 内部调用)
+  - **但**前端 `@tauri-apps/api/event.listen` 走的是 plugin event 提供的内置 command,默认 deny,必须有 capability 授权
+  - 同理:前端用 `@tauri-apps/api/window` 的窗口操作、`@tauri-apps/api/path` 的路径解析等也都需要 capability
+  - 我们之前能用 `invoke('start_drag')` 是因为 `start_drag` 是我们自己 `invoke_handler` 注册的命令,不走 plugin command 的 capability 链
+- **决策**:新建 `src-tauri/capabilities/default.json`,permissions 为 `core:default`(集合,包含 event/webview/window/path/app/resources 各 default 子集)
+- **不包含**:fs/shell/dialog/notification 等敏感插件权限(M1-M3 不需要;M4 装扮 / M5 灰度更新 时按需扩展)
+- **不包含**:`global-shortcut:*` 权限(因为我们前端不调 register/unregister,Rust 端注册即可)
+- **影响**:`src-tauri/capabilities/default.json` 新增;`gen/schemas/capabilities.json` 在下次 build 时自动重新生成;无 runtime 行为变化(只解封被默认 deny 的 IPC)
+- **Ref**:`15a0551`
 
 ---
 
