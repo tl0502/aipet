@@ -27,6 +27,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "thiserror 2.0.18",
+ "windows",
 ]
 
 [[package]]

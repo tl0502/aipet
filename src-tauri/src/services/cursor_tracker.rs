@@ -1,0 +1,61 @@
+use crate::state::AppState;
+use std::thread;
+use std::time::Duration;
+use tauri::{AppHandle, Manager};
+use windows::Win32::Foundation::POINT;
+use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+
+// 60Hz 光标追踪 + 5px 滞后区,平滑切换 set_ignore_cursor_events。
+// 详见 progress/m1.md § A.3 智能穿透 + 边缘吸附。
+const TICK_INTERVAL_MS: u64 = 16;
+const HYSTERESIS_PX: i32 = 5;
+
+pub fn spawn(app: AppHandle) {
+    thread::spawn(move || {
+        let window = match app.get_webview_window("pet") {
+            Some(w) => w,
+            None => return,
+        };
+
+        let mut last_ignore = true;
+        let _ = window.set_ignore_cursor_events(true);
+
+        loop {
+            thread::sleep(Duration::from_millis(TICK_INTERVAL_MS));
+
+            let cursor = match get_cursor_pos() {
+                Some(p) => p,
+                None => continue,
+            };
+
+            let state = app.state::<AppState>();
+            let is_dragging = *state.is_dragging.lock().unwrap();
+            let hitbox = *state.pet_hitbox.lock().unwrap();
+
+            let want_ignore = if is_dragging {
+                false
+            } else if let Some(box_) = hitbox {
+                if last_ignore {
+                    !box_.contains(cursor.0, cursor.1)
+                } else {
+                    !box_.expand(HYSTERESIS_PX).contains(cursor.0, cursor.1)
+                }
+            } else {
+                true
+            };
+
+            if want_ignore != last_ignore {
+                let _ = window.set_ignore_cursor_events(want_ignore);
+                last_ignore = want_ignore;
+            }
+        }
+    });
+}
+
+fn get_cursor_pos() -> Option<(i32, i32)> {
+    let mut point = POINT::default();
+    unsafe {
+        GetCursorPos(&mut point).ok()?;
+    }
+    Some((point.x, point.y))
+}
