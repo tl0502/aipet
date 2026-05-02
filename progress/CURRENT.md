@@ -3,8 +3,8 @@
 > 任何 agent 入会必读此文件(启动协议步骤 2)。完成 1 个 task 后必更新此文件。
 
 - **Milestone**:M1 W1 D2(收口)→ 即将进入 D3
-- **Active branch**:`feat/m1-d2-window-interaction`(已改名,去 live2d 残留)
-- **Last commit**:`2f3b28c feat(m1-d2): VRM rendering + transparent window interaction`
+- **Active branch**:`feat/m1-d2-window-interaction`
+- **Last commit**:`04f9abc fix(m1-d2): hitbox DPR scaling + VRM-fail dragging fallback`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -22,19 +22,22 @@
 
 | Story | Commit | Date |
 |---|---|---|
-| A.1 透明窗口 + 置顶 + skipTaskbar | `8a37728` (scaffold 时已就绪) | 初始 |
+| A.1 透明窗口 + 置顶 + skipTaskbar | `8a37728`(scaffold 时已就绪) | 初始 |
 | A.2 VRM 渲染 momo + Three.js + spring bone | `2f3b28c` | 2026-05-02 |
-| A.3 hitbox 上报 + 拖动 + 智能穿透 + 边缘吸附 | `2f3b28c` | 2026-05-02 |
+| A.3 hitbox 上报 + 拖动 + 智能穿透 + 边缘吸附 | `2f3b28c` + `04f9abc`(DPR 修复) | 2026-05-02 |
 | 文档对齐 v1.0 → VRM | `908a6bd` | 2026-05-02 |
 | Scaffold tweaks(端口 1430、vrm gitignore、vite path) | `eadad55` | 2026-05-02 |
+| vibecoding 工程支撑层(CLAUDE.md / .claude/agents/ / progress/) | `a0910f2` | 2026-05-02 |
+| CI 加 PII 静态扫描 + cargo test | `89de30e` | 2026-05-02 |
+| A.3 DPR 缩放修复 + VRM-fail 拖动 fallback | `04f9abc` | 2026-05-02 |
 
 ---
 
 ## Blockers
 
-| Blocker | Owner | 期望解锁条件 | 影响 |
-|---|---|---|---|
-| 缺 `public/avatar/avatar.vrm` 实际模型文件 | (you) | 从 VRoid Hub 下载 momo VRoid 占位,或用 VRoid Studio 自建 | A.2 视觉 verify 暂时只能看到 "VRM 加载失败" 提示;不阻塞代码层进展 |
+(无)
+
+> 历史 Blocker `缺 public/avatar/avatar.vrm` 已于 2026-05-02 由用户补充模型文件解除。
 
 ---
 
@@ -51,6 +54,7 @@
 ## Recent Decisions(简版,详见 decisions-log.md)
 
 - 2026-05-02:vibecoding 工程支撑层落地(CLAUDE.md / .claude/agents/ / progress/),协作模式定为单人 × 串行 session 文件驱动
+- 2026-05-02:hitbox 坐标转换收口在 Rust 侧(读 `outer_position` + `scale_factor`),前端只发 CSS 像素 — 高 DPI 下 cursor_tracker 失效根因修复
 
 ---
 
