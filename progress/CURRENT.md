@@ -2,9 +2,9 @@
 
 > 任何 agent 入会必读此文件(启动协议步骤 2)。完成 1 个 task 后必更新此文件。
 
-- **Milestone**:M1 W1 D2(收口)→ 即将进入 D3
+- **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`04f9abc fix(m1-d2): hitbox DPR scaling + VRM-fail dragging fallback`
+- **Last commit**:`fbe2672 feat(m1-d3): A.4 system tray with show/hide/quit + close-to-hide`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -30,6 +30,7 @@
 | vibecoding 工程支撑层(CLAUDE.md / .claude/agents/ / progress/) | `a0910f2` | 2026-05-02 |
 | CI 加 PII 静态扫描 + cargo test | `89de30e` | 2026-05-02 |
 | A.3 DPR 缩放修复 + VRM-fail 拖动 fallback | `04f9abc` | 2026-05-02 |
+| A.4 系统托盘(显示/隐藏 + 退出 + 关窗拦截) | `fbe2672` | 2026-05-02 |
 
 ---
 
@@ -43,9 +44,9 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **A.4 系统托盘**(0.5 day)— 加 tray-icon plugin,显示/隐藏桌宠 + 退出菜单
-2. **A.5 全局快捷键**(0.5 day)— `Ctrl+Alt+Space` 唤起对话 / `Ctrl+Shift+B` 摸鱼
-3. **I.1 MigrationService**(1 day)— SQLite schema v1 初始化 + tauri-plugin-sql 集成,为 H/F/B 模块铺底
+1. **A.5 全局快捷键**(0.5 day)— `Ctrl+Alt+Space` 唤起对话 / `Ctrl+Shift+B` 摸鱼;复用 A.4 的 show/hide 路径
+2. **I.1 MigrationService**(1 day)— SQLite schema v1 初始化 + tauri-plugin-sql 集成,为 H/F/B 模块铺底
+3. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底
 
 详见 [m1.md](m1.md) 完整拆解。
 
