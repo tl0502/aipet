@@ -112,7 +112,24 @@
   - Q4 磁吸物理阈值(M2 W3 启动 B.3.c 前定)
   - Q5 控制按钮区按钮清单(M2 W3 启动 B.3.b 前定)
   - TBD-3 hub 与磁吸 chat 窗 conversation 同步语义(M4 启动 B.3.e 前定)
-- **Ref**:`docs/AIPET-obsidian/M0-ADRs/ADR-015-chat-three-modes.md`(commit `2d4327c` 起草 + Accepted)
+- **Ref**:`docs/AIPET-obsidian/M0-ADRs/ADR-015-chat-three-modes.md`(commit `2d4327c` 起草 + `8696fa2` Accepted)
+
+### 2026-05-02 | B 步骤:progress 拆 stories + 智能穿透改进归位
+
+- **决策**:依据 ADR-015 Accepted,把 B.3 单 story 拆为 6 子(B.3.a-f)分配到 m1-m5;同时把智能穿透 4 项改进 backlog(plan `a-5-immutable-aurora.md` Part A)归位到对应 milestone 而非搁置
+- **拆分映射**:
+  - m1.md:B.3 → **B.3.a 形态 2 极简版**(独立 chat 窗 + 单 conversation + 流式 + ESC/失焦/快捷键 toggle)
+  - m2.md:加 **B.3.b 控制按钮区骨架**(模块 A 延伸,0.5d)+ **B.3.c 形态 2 磁吸交互**(1d)+ 入口前置 Q4/Q5 必拍板
+  - m3.md:加 **B.3.d 多 conversation 左侧栏**(1d)+ L 模块加注"接收源扩展:形态 2/3 输入区 + 角色窗"
+  - m4.md:加 **B.3.e hub 总面板**(2d 4 tab,工坊+设置由原独立窗收纳)+ 入口前置 TBD-3 必拍板
+  - m5.md:加 **B.3.f 形态 3 漫画气泡**(1.5d)+ GameRoom 行注释 hub 共存 launcher
+- **智能穿透改进归位**(plan a-5 Part A):
+  - II bbox 阈值降 IPC(0.2d)+ III tauri://moved 立即上报(0.3d,**真实 bug**)→ m1.md **A.6** D10 收口前
+  - I hitbox 多 sub-mesh 取并集(0.5d)→ m2.md **A.7** N 模块前置(N hitbox 触发率 ≥ 95% KPI 强相关)
+  - IV 5 秒 readPixels alpha mask 对比 → telemetry(0.5d)→ m2.md **N.0** N 模块期 backup(应急,N 触发率 < 95% 才启用)
+- **理由**:不搁置 backlog → 真实 bug(III)在 M1 收口前修;精度改进(I)放在 N 模块前置位置一气呵成;埋点(IV)作为 KPI 应急工具不消耗常规带宽
+- **影响**:m1.md 总计从 12.5d → 13d(略紧但 D11 可吸收);Recently Completed 添加;无悬空 backlog
+- **Ref**:本笔 commit
 
 ---
 

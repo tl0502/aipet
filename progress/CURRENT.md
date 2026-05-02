@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`8696fa2 docs(adr): accept ADR-015 chat three-mode architecture`
+- **Last commit**:`<待 commit> docs(progress): split B.3 across M1-M5 + place smart-passthrough improvements`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-02
 
@@ -33,7 +33,8 @@
 | A.4 系统托盘(显示/隐藏 + 退出 + 关窗拦截) | `fbe2672` | 2026-05-02 |
 | A.5 全局快捷键(`Ctrl+Alt+Space` / `Ctrl+Shift+B` 占位实现) | `da0a6ad` | 2026-05-02 |
 | capabilities/default.json 修复 frontend event listen | `15a0551` | 2026-05-02 |
-| ADR-015 对话面板三形态架构 起草 + Accepted | `2d4327c` + 本笔 | 2026-05-02 |
+| ADR-015 对话面板三形态架构 起草 + Accepted | `2d4327c` + `8696fa2` | 2026-05-02 |
+| B 步骤:progress 拆 stories(B.3.a-f 跨 M1-M5 + 智能穿透 II/III/I/IV 归位) | 本笔 | 2026-05-02 |
 
 ---
 
@@ -53,7 +54,7 @@
 
 详见 [m1.md](m1.md) 完整拆解。
 
-> **Backlog (智能穿透优化,无优先级)**:见 plan `a-5-immutable-aurora.md` Part A 改进选项菜单 — hitbox 多 sub-mesh 取并集 / bbox 阈值降 IPC / 拖动结束立即上报 / readPixels 周期校正埋点。当前轮询方案为 Tauri 业界主流,生产验证通过,M1 不优先动。
+> **Backlog 已归位**(2026-05-02 B 步骤完成):智能穿透 4 项改进(plan a-5 Part A)已分散到 m1.md A.6(II+III, D10)/ m2.md A.7(I, N 前置)/ m2.md N.0(IV, N 期 backup)。无悬空 backlog。
 
 ---
 
