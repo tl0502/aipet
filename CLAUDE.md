@@ -52,6 +52,8 @@
 
 ## Agent 决策矩阵(任务类型 → 推荐 agent)
 
+> ⚠️ **当前状态**(2026-05-03 起):第三方 API 网关(`Calcium-Ion/new-api`)在所有 subagent 路径上 nil pointer panic,**4 个 subagent 实际全部不可用**(Explore / general-purpose / adr-author / doc-aligner / gate-checker / module-implementer 测试均 500 panic)。下表与下方 IO 契约描述网关修复后的目标协作模式;**当前阶段所有任务由 main session 直接执行**,实操指引见本节「main 直接做的 4 类场景」。网关修好后撤本警示,恢复 spawn subagent 默认协作。
+
 | 任务类型 | 推荐 agent | 触发短语示例 |
 |---|---|---|
 | 实施 PRD §6 模块或 story | `module-implementer` | "实现 H 人格" / "继续 B.3.a" / "实施 A.6" |
@@ -63,6 +65,34 @@
 > 上表是默认推荐。当**任务 ≤ 0.5 day** 且 **main 已勘察过相关代码与文档上下文**时,可省 subagent 由 main 直接执行 — subagent 冷启动需重读启动协议 + 重新勘察,丢失 main 已有上下文,小任务上性价比反转。
 > ✅ 适用 main 直接做:小型代码改动 / 单文件实施 / main 刚做完同类任务的连续推进。
 > ❌ 仍走 subagent:跨 module 重构、模板化产出(ADR / 文档同步 / 出口报告)、需 plan 模式审批的决策类任务。
+
+### main 直接做的 4 类场景实操指引(网关修复前)
+
+> 网关修好撤本小节,恢复 spawn subagent。每类场景 main 都先读启动协议 3 件 + 对应 `.claude/agents/<role>.md`(把它当 SOP 参考,不再 spawn)。完成 1 task 必更 `progress/CURRENT.md` + atomic commit + push 当前 `feat/*` 到 `origin`(参考 `/ship-task`)。
+
+**1. 实施任务**(原 `module-implementer`)
+- 触发:用户分配模块号 / story ID(「实施 I.2」/「继续 B.3.a」/「实现 H 人格」)
+- 步骤:读 PRD §6.<模块> + 架构对应章节 + 涉及 ADR → 拆 stories(参考 `progress/m{N}.md`,无则自拆)→ 拆 task(每 ≤ 1 day)→ 串行实施(代码 + 测试 + typecheck/lint/cargo check)→ 更 `progress/CURRENT.md` → atomic commit → push
+- DoD:CI 通过 + 性能预算未超(BASELINE § 速查)+ progress 已同步
+- 参考:[.claude/agents/module-implementer.md](.claude/agents/module-implementer.md)
+
+**2. 决策起草**(原 `adr-author`)
+- 触发:实施期发现需新决策(「起草 ADR-NNN ...」/「需要新决策...」)
+- 步骤:读 `M0-ADRs/README.md` + 同类既有 ADR(如 ADR-015)做模板 → 在 `M0-ADRs/` 创建 `ADR-NNN-<topic>.md`,状态先标 **Proposed** → 写 §0 决策动机 / §1 现状 / §2 备选 / §3 决策 / §4 影响 → **等用户签字才改 Accepted**(不可越级)→ 同步 BASELINE.md ADR 表
+- DoD:Proposed → 用户签字 → Accepted commit;BASELINE.md ADR 表加行
+- 参考:[.claude/agents/adr-author.md](.claude/agents/adr-author.md)
+
+**3. 文档同步**(原 `doc-aligner`)
+- 触发:发现实施现实与文档偏差(「PRD §X 不准」/「架构 §Y 漏字段」/「升 v1.1」)
+- 步骤:**6 份必扫**(PRD / 架构 / 人格 / flows / UAT / **roadmap**)→ 小修小补 in-place(typo / 字段补)→ 章节级新增升 v1.1(文档头加变更摘要,不压平)→ 重大架构调整走 ADR 流程 → 同步 `BASELINE.md` 版本号
+- 易漏:**roadmap**(详 doc-aligner.md「6 份必检 + 漏升经验」)
+- 参考:[.claude/agents/doc-aligner.md](.claude/agents/doc-aligner.md)
+
+**4. 出口检查**(原 `gate-checker`)
+- 触发:Milestone 末(「M{N} 出口检查」/「出口判断」)
+- 步骤:**几乎只读**,对照路线图 §7.<M> 出口清单 → 跑代码状态 / progress 行 ✅ / CI 历史 / 性能预算 → 写 `progress/gate-m{N}.md`(达成 / 未达成 + 修复任务清单)→ **不修代码 / 不改文档**(发现偏差留给场景 3)
+- DoD:`progress/gate-m{N}.md` 存在 + 出口判断明确 + 用户决定合 main + tag
+- 参考:[.claude/agents/gate-checker.md](.claude/agents/gate-checker.md)
 
 ## Agent IO 契约(单 main 接力,subagent 不互调)
 
