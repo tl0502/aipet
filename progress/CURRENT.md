@@ -6,7 +6,7 @@
 - **Active branch**:`feat/m1-d2-window-interaction`
 - **Last commit**:`30cfb45 chore(gitignore): expand to 13 categories + untrack .obsidian/`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-03(CLAUDE.md / 4 agent .md / hook 注释整体减冗:消除 5 处规则重复 + 标注 subagent 不可用现状)
+- **Last updated**:2026-05-03(I.2 CryptoService 完成:Windows DPAPI 封装 + 4 单测全过)
 
 ---
 
@@ -42,6 +42,7 @@
 | vibecoding v2 hook ESM 冲突修复(`.js` → `.cjs`,package.json 含 `"type":"module"` 致 Node 强制 ESM 解析 require 崩溃) | `d1a65c7` | 2026-05-02 |
 | .gitignore 升级(28 → 85 行,新增测试/缓存/Obsidian/运行时 DB/Bundle/编辑器临时分类)+ `git rm --cached` 移除已泄露的 .obsidian/ 整目录(含 obsidian-local-rest-api 的 API key + TLS 私钥) | `30cfb45` | 2026-05-02 |
 | `/ship-task` 项目命令 + CLAUDE.md 流程补强:完成 task 后必须 progress + atomic commit + push 当前 `feat/*` 到 origin,避免本地 commit 未同步 GitHub | (本笔)| 2026-05-03 |
+| **I.2 CryptoService**(Windows DPAPI 封装:`protect` / `unprotect` + `CRYPTOPROTECT_UI_FORBIDDEN` 防 UI;4 单测覆盖 round-trip / empty / binary safety / invalid ciphertext) | (本笔)| 2026-05-03 |
 
 ---
 
@@ -55,9 +56,9 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **I.2 CryptoService**(0.5 day)— Windows DPAPI 封装,为 B.1 LLMProvider 的 API key 加密铺底;写入 `secrets` 表的 ciphertext
-2. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown,写入 `personas` 表
-3. **F.1 MemoryService MVP**(0.5 day)— `messages` 表 CRUD + 90 天清理 + summary 占位
+1. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown,写入 `personas` 表
+2. **F.1 MemoryService MVP**(0.5 day)— `messages` 表 CRUD + 90 天清理 + summary 占位
+3. **F.2 NicknameService facade**(0.5 day)— 读 `user_state.user_nickname` / `pet_nickname`,触发 `nickname.changed` 事件
 
 详见 [m1.md](m1.md) 完整拆解。
 
@@ -76,6 +77,7 @@
 - 2026-05-03:`module-implementer` agent 经 main session 实施期排查发现 frontmatter 缺 `tools` 字段未注册(对比 adr-author / doc-aligner / gate-checker 均有);补 `tools: Read, Write, Edit, Glob, Grep, Bash` 修复,vibecoding v2 的 4 个 agent 全部可用。同步 CLAUDE.md 决策矩阵下方加 **subagent 选用判断准则**(冷启动重读启动协议 vs main 已有上下文的性价比权衡:小任务 ≤ 0.5d + main 已勘察 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent)
 - 2026-05-03:`module-implementer` 修好 frontmatter 后,继续测试 Explore / general-purpose 两个 subagent,发现**所有 subagent 路径在第三方 API 网关(`Calcium-Ion/new-api`)上 nil pointer panic**(显式 `model: opus` 也 500;不指定走默认模型则 400 "1m 上下文已经全量可用")。判定为网关 bug 而非 Claude Code 设计问题。决议:**当前阶段所有任务由 main session 直接执行**;CLAUDE.md 决策矩阵章节顶部加 ⚠️ 状态标注 + 末尾加「main 直接做的 4 类场景实操指引」(实施 / 决策起草 / 文档同步 / 出口检查),把 4 个 .claude/agents/<role>.md 当 SOP 参考而非 spawn 目标;网关修好撤本节,恢复 subagent 协作
 - 2026-05-03:Claude 流程文件深度巡检后整体减冗:① CLAUDE.md "完成 task 必更 progress + atomic commit + push" 重 5 次 → 收口到 § 提交规范 唯一权威源,其他 4 处改"详 § 提交规范";② 启动协议第 3 步措辞中性化(「按场景」替代「被指派」);③ § Agent 决策矩阵 / § subagent 选用判断 / § 4 类场景 / § IO 契约 4 段重组为 2 段(当前模式优先 + 目标模式备查),每场景 2-3 行紧凑表达;④ adr-author / gate-checker / module-implementer 3 份 agent .md 的 module-implementer 引用同步成"main 直接做 / 网关修复后由 module-implementer";⑤ hook 注释 "由 adr-author 角色起草" → 「决策起草」SOP 中性表述。CLAUDE.md 137 → 130 行,信息密度提升,新 session 一打开就能定位「当前 subagent 不可用,main 直接做」
+- 2026-05-03:**I.2 CryptoService 落地** — `src-tauri/src/services/crypto.rs` 用 windows 0.61 crate 直调 `CryptProtectData` / `CryptUnprotectData`,标志位 `CRYPTOPROTECT_UI_FORBIDDEN` 防止 DPAPI 弹 UI(隐私边界 #4 硬要求)。`CryptoError` 用 thiserror 包裹 `windows::core::Error`,与现有 `AppError` 风格一致。Cargo.toml 加 `Win32_Security_Cryptography` feature。4 单测全过(round-trip / empty / binary safety / invalid ciphertext);目前 `protect`/`unprotect` dead_code 警告会在 B.1 LLMProvider 接入后自然消除。
 
 ---
 
