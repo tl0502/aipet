@@ -54,6 +54,9 @@ desktop.ini
 .claude/settings.local.json
 .claude/hook-debug.log
 
+# === /code-audit 审查状态(单机,跨机器重审基准应显式给 SHA)===
+progress/.audit-state
+
 # === Obsidian vault 配置(完全私人化,新协作者打开 vault 后自行配置)===
 docs/AIPET-obsidian/.obsidian/
 
