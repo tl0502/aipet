@@ -27,6 +27,9 @@ windows = { version = "0.61", features = ["Win32_UI_WindowsAndMessaging", "Win32
 gray_matter = { version = "0.2", default-features = false, features = ["yaml"] }
 sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
 
+# F.1 MemoryService:messages.id 走 ULID(schema 注释明写;时间序利于 (conversation_id, created_at) 索引)
+ulid = "1"
+
 # 仅桌面平台启用全局快捷键(避免 mobile 编译报错;M1-M5 不上 mobile,提前规范)
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-global-shortcut = "2"
