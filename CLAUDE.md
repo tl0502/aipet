@@ -25,14 +25,17 @@
 - Conventional Commits: `<type>(<scope>): <subject>` — 例 `feat(persona): add .soul.md import`
 - type:`feat / fix / refactor / docs / test / perf / chore`
 - 每笔 commit 关联 ADR 号(决策类)或 PRD 模块号(实施类)
-- 完成 1 个 story 后**必更** `progress/CURRENT.md`
+- 完成 1 个 task 后**必更** `progress/CURRENT.md` + atomic commit + push 当前 `feat/*` 分支到 `origin`
+- 完成 1 个 story 后额外更新 `progress/m{N}.md` 对应行状态
 - 不要积累 100+ 行的"大笔 commit"——一个 task 一笔
+- 推荐用 `/ship-task` 收口任务,避免本地 commit 未同步 GitHub
 
 ## 工作流
 
 - 主分支 `main` 受保护,只接 PR
 - 当前 milestone:`milestone/m{N}` ← 从 main 拉
 - 模块开发:`feat/m{N}-d{day}-<topic>` ← 从 milestone/m{N} 拉
+- 完成 task 后 push 当前 `feat/*` 到远程(`git push -u origin <branch>`);远程仓库最新进度首先看 feature branch,不是 main
 - CI 通过(lint + typecheck + cargo check + test + PII scan) + 1 reviewer 可合并
 - milestone 出口:gate-checker 角色生成 `progress/gate-m{N}.md`,出口达成则合 main 打 tag `v0.M{N}.0`
 
@@ -41,7 +44,7 @@
 | 阶段 | 动作 |
 |---|---|
 | **启动** | 读启动协议 3 件 + (可选)角色定义 |
-| **完成 1 个 task** | 更 `progress/CURRENT.md` + atomic commit |
+| **完成 1 个 task** | 更 `progress/CURRENT.md` + atomic commit + push 当前 `feat/*` 到 `origin` |
 | **完成 1 个 story** | 额外标 `progress/m{N}.md` 行状态 ✅ |
 | **完成 1 个 module** | 额外在 `progress/decisions-log.md` 写 1 行变更摘要 |
 | **遇到阻塞** | 写到 `progress/CURRENT.md § Blockers`,标 owner = 自己,期望解锁条件 |

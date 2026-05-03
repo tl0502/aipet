@@ -13,6 +13,7 @@ export default [
       '.husky/',
       '.github/',
       '.vscode/',
+      '.claude/',
       'docs/',
       'public/',
       '*.config.js',
