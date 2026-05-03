@@ -21,7 +21,7 @@ use gray_matter::engine::YAML;
 use gray_matter::Matter;
 use serde::Deserialize;
 use sqlx::sqlite::SqliteConnectOptions;
-use sqlx::{ConnectOptions, Connection, SqliteConnection};
+use sqlx::{ConnectOptions, Connection, SqliteConnection, Transaction};
 use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 use thiserror::Error;
@@ -134,15 +134,17 @@ pub async fn seed_builtin<R: Runtime>(app: &AppHandle<R>) -> Result<(), PersonaE
         .connect()
         .await?;
 
-    upsert_persona(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH).await?;
-    insert_snapshot_if_new(&mut conn, &parsed.frontmatter.id, &parsed).await?;
+    let mut tx = conn.begin().await?;
+    upsert_persona(&mut tx, &parsed, "builtin", MOMO_BUNDLED_PATH).await?;
+    insert_snapshot_if_new(&mut tx, &parsed.frontmatter.id, &parsed).await?;
+    tx.commit().await?;
 
     conn.close().await?;
     Ok(())
 }
 
 async fn upsert_persona(
-    conn: &mut SqliteConnection,
+    tx: &mut Transaction<'_, sqlx::Sqlite>,
     parsed: &ParsedPersona,
     source: &str,
     file_path: &str,
@@ -166,41 +168,29 @@ async fn upsert_persona(
     .bind(file_path)
     .bind(&now)
     .bind(&now)
-    .execute(&mut *conn)
+    .execute(tx.as_mut())
     .await?;
     Ok(())
 }
 
 async fn insert_snapshot_if_new(
-    conn: &mut SqliteConnection,
+    tx: &mut Transaction<'_, sqlx::Sqlite>,
     persona_id: &str,
     parsed: &ParsedPersona,
 ) -> Result<(), PersonaError> {
-    // 仅当 (persona_id, version) 不存在时插入,避免每次启动堆 snapshot 行
-    let existing: Option<(i64,)> = sqlx::query_as(
-        "SELECT id FROM persona_snapshots WHERE persona_id = ? AND version = ? LIMIT 1",
-    )
-    .bind(persona_id)
-    .bind(&parsed.frontmatter.version)
-    .fetch_optional(&mut *conn)
-    .await?;
-
-    if existing.is_some() {
-        return Ok(());
-    }
-
     let now = Utc::now().to_rfc3339();
     sqlx::query(
         r#"
         INSERT INTO persona_snapshots (persona_id, version, content, created_at)
         VALUES (?, ?, ?, ?)
+        ON CONFLICT(persona_id, version) DO NOTHING
         "#,
     )
     .bind(persona_id)
     .bind(&parsed.frontmatter.version)
     .bind(&parsed.raw_markdown)
     .bind(&now)
-    .execute(&mut *conn)
+    .execute(tx.as_mut())
     .await?;
     Ok(())
 }

@@ -20,12 +20,21 @@ const DB_URL: &str = "sqlite:aipet.db";
 ///
 /// schema 详见 docs/AIPET-obsidian/架构设计/...v1.0.md §4(已升 v1.1)。
 fn migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        description: "init schema v1 per architecture v1.1 §4 (ADR-015 三形态共享 ConversationStore)",
-        sql: include_str!("../migrations/001_init.sql"),
-        kind: MigrationKind::Up,
-    }]
+    vec![
+        Migration {
+            version: 1,
+            description:
+                "init schema v1 per architecture v1.1 §4 (ADR-015 三形态共享 ConversationStore)",
+            sql: include_str!("../migrations/001_init.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "enforce unique persona_snapshots(persona_id, version)",
+            sql: include_str!("../migrations/002_persona_snapshot_unique.sql"),
+            kind: MigrationKind::Up,
+        },
+    ]
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
