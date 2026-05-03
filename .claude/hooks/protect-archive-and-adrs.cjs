@@ -25,7 +25,7 @@ const isAcceptedAdr = /M0-ADRs[/\\]ADR-(00[1-9]|01[0-4])-[\w-]+\.md$/i.test(file
 if (isArchive || isAcceptedAdr) {
   const reason = isArchive
     ? '禁改 _archive/(v0.1-v0.7 历史归档,实施期参考即误)。详 CLAUDE.md § 守则。'
-    : '禁改 ADR-001~014(已 Accepted)。新决策走 M0-ADRs/ADR-015+(由 adr-author 角色起草)。详 CLAUDE.md § 守则。';
+    : '禁改 ADR-001~014(已 Accepted)。新决策走 M0-ADRs/ADR-015+(走「决策起草」SOP,详 CLAUDE.md § Agent 决策矩阵)。详 CLAUDE.md § 守则。';
 
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {

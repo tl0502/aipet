@@ -6,7 +6,7 @@
 
 1. 读 [docs/AIPET-obsidian/BASELINE.md](docs/AIPET-obsidian/BASELINE.md) — 5 份 v1.0 基线 + 14 ADR + 路线图入口
 2. 读 [progress/CURRENT.md](progress/CURRENT.md) — 当前 milestone / sprint / in-progress modules / blockers / next 3 tasks
-3. 若被指派具体角色,读 `.claude/agents/<role>.md`(module-implementer / adr-author / doc-aligner / gate-checker)
+3. 按任务场景对应 `.claude/agents/<role>.md`(SOP 参考,详 § Agent 决策矩阵)
 
 ## 守则(实施期不可绕过)
 
@@ -35,7 +35,7 @@
 - 主分支 `main` 受保护,只接 PR
 - 当前 milestone:`milestone/m{N}` ← 从 main 拉
 - 模块开发:`feat/m{N}-d{day}-<topic>` ← 从 milestone/m{N} 拉
-- 完成 task 后 push 当前 `feat/*` 到远程(`git push -u origin <branch>`);远程仓库最新进度首先看 feature branch,不是 main
+- 收口与 push 流程:详 § 提交规范 + `/ship-task`(远程进度首先看 feature branch,不是 main)
 - CI 通过(lint + typecheck + cargo check + test + PII scan) + 1 reviewer 可合并
 - milestone 出口:gate-checker 角色生成 `progress/gate-m{N}.md`,出口达成则合 main 打 tag `v0.M{N}.0`
 
@@ -44,69 +44,63 @@
 | 阶段 | 动作 |
 |---|---|
 | **启动** | 读启动协议 3 件 + (可选)角色定义 |
-| **完成 1 个 task** | 更 `progress/CURRENT.md` + atomic commit + push 当前 `feat/*` 到 `origin` |
+| **完成 1 个 task** | 详 § 提交规范(`/ship-task` 收口) |
 | **完成 1 个 story** | 额外标 `progress/m{N}.md` 行状态 ✅ |
 | **完成 1 个 module** | 额外在 `progress/decisions-log.md` 写 1 行变更摘要 |
 | **遇到阻塞** | 写到 `progress/CURRENT.md § Blockers`,标 owner = 自己,期望解锁条件 |
 | **milestone 出口** | 调 `gate-checker` 生成 `progress/gate-m{N}.md`,出口达成则合 main + tag |
 
-## Agent 决策矩阵(任务类型 → 推荐 agent)
+## Agent 决策矩阵
 
-> ⚠️ **当前状态**(2026-05-03 起):第三方 API 网关(`Calcium-Ion/new-api`)在所有 subagent 路径上 nil pointer panic,**4 个 subagent 实际全部不可用**(Explore / general-purpose / adr-author / doc-aligner / gate-checker / module-implementer 测试均 500 panic)。下表与下方 IO 契约描述网关修复后的目标协作模式;**当前阶段所有任务由 main session 直接执行**,实操指引见本节「main 直接做的 4 类场景」。网关修好后撤本警示,恢复 spawn subagent 默认协作。
+> ⚠️ **当前实际模式**(2026-05-03 起):第三方 API 网关(`Calcium-Ion/new-api`)在所有 subagent 路径上 nil pointer panic,**4 个 subagent 全部不可用**(Explore / general-purpose / adr-author / doc-aligner / gate-checker / module-implementer 测试均 500 panic)。**所有任务由 main session 直接执行**,SOP 见下方「当前模式:main 直接做的 4 类场景」。网关修好撤本警示,恢复矩阵默认 spawn 协作。
+
+### 任务 → agent(目标模式 — 网关修复后)
 
 | 任务类型 | 推荐 agent | 触发短语示例 |
 |---|---|---|
 | 实施 PRD §6 模块或 story | `module-implementer` | "实现 H 人格" / "继续 B.3.a" / "实施 A.6" |
-| 起草新 ADR(实施期发现新决策需求) | `adr-author` | "起草 ADR-016 ..." / "需要新决策..." |
+| 起草新 ADR(实施期发现新决策) | `adr-author` | "起草 ADR-NNN" / "需要新决策" |
 | 文档同步(6 份基线 + 路线图) | `doc-aligner` | "PRD §X 不准" / "升 v1.1" / "与现实偏差" |
-| Milestone 出口检查(M1-M5 末) | `gate-checker` | "M{N} 出口检查" / "milestone 出口报告" |
+| Milestone 出口检查(M1-M5 末) | `gate-checker` | "M{N} 出口检查" / "出口判断" |
 
-> **subagent 选用判断**(2026-05-03 实施期补充):
-> 上表是默认推荐。当**任务 ≤ 0.5 day** 且 **main 已勘察过相关代码与文档上下文**时,可省 subagent 由 main 直接执行 — subagent 冷启动需重读启动协议 + 重新勘察,丢失 main 已有上下文,小任务上性价比反转。
-> ✅ 适用 main 直接做:小型代码改动 / 单文件实施 / main 刚做完同类任务的连续推进。
-> ❌ 仍走 subagent:跨 module 重构、模板化产出(ADR / 文档同步 / 出口报告)、需 plan 模式审批的决策类任务。
+> **subagent 选用判断**(网关修复后用):任务 ≤ 0.5 day 且 main 已勘察过相关上下文 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent。
 
-### main 直接做的 4 类场景实操指引(网关修复前)
+### 当前模式:main 直接做的 4 类场景
 
-> 网关修好撤本小节,恢复 spawn subagent。每类场景 main 都先读启动协议 3 件 + 对应 `.claude/agents/<role>.md`(把它当 SOP 参考,不再 spawn)。完成 1 task 必更 `progress/CURRENT.md` + atomic commit + push 当前 `feat/*` 到 `origin`(参考 `/ship-task`)。
+> 把对应 `.claude/agents/<role>.md` 当 SOP 参考,**不 spawn**。完成 task 后 `/ship-task` 收口(详 § 提交规范)。
 
-**1. 实施任务**(原 `module-implementer`)
-- 触发:用户分配模块号 / story ID(「实施 I.2」/「继续 B.3.a」/「实现 H 人格」)
-- 步骤:读 PRD §6.<模块> + 架构对应章节 + 涉及 ADR → 拆 stories(参考 `progress/m{N}.md`,无则自拆)→ 拆 task(每 ≤ 1 day)→ 串行实施(代码 + 测试 + typecheck/lint/cargo check)→ 更 `progress/CURRENT.md` → atomic commit → push
-- DoD:CI 通过 + 性能预算未超(BASELINE § 速查)+ progress 已同步
-- 参考:[.claude/agents/module-implementer.md](.claude/agents/module-implementer.md)
+**1. 实施任务**(模块号 / story ID,如「实施 I.2」「继续 B.3.a」)
+→ 读 PRD §6.<模块> + 架构对应 § + 涉及 ADR → 拆 stories/tasks → 实施 + 测试 + cargo check → `/ship-task`
+→ SOP:[.claude/agents/module-implementer.md](.claude/agents/module-implementer.md)
 
-**2. 决策起草**(原 `adr-author`)
-- 触发:实施期发现需新决策(「起草 ADR-NNN ...」/「需要新决策...」)
-- 步骤:读 `M0-ADRs/README.md` + 同类既有 ADR(如 ADR-015)做模板 → 在 `M0-ADRs/` 创建 `ADR-NNN-<topic>.md`,状态先标 **Proposed** → 写 §0 决策动机 / §1 现状 / §2 备选 / §3 决策 / §4 影响 → **等用户签字才改 Accepted**(不可越级)→ 同步 BASELINE.md ADR 表
-- DoD:Proposed → 用户签字 → Accepted commit;BASELINE.md ADR 表加行
-- 参考:[.claude/agents/adr-author.md](.claude/agents/adr-author.md)
+**2. 决策起草**(发现需新决策,如「起草 ADR-NNN」)
+→ 读 `M0-ADRs/README.md` + 同类已 Accepted ADR(如 ADR-015)做模板 → 起草 **Proposed** → **用户签字才改 Accepted**(不可越级)→ 同步 BASELINE.md ADR 表
+→ SOP:[.claude/agents/adr-author.md](.claude/agents/adr-author.md)
 
-**3. 文档同步**(原 `doc-aligner`)
-- 触发:发现实施现实与文档偏差(「PRD §X 不准」/「架构 §Y 漏字段」/「升 v1.1」)
-- 步骤:**6 份必扫**(PRD / 架构 / 人格 / flows / UAT / **roadmap**)→ 小修小补 in-place(typo / 字段补)→ 章节级新增升 v1.1(文档头加变更摘要,不压平)→ 重大架构调整走 ADR 流程 → 同步 `BASELINE.md` 版本号
-- 易漏:**roadmap**(详 doc-aligner.md「6 份必检 + 漏升经验」)
-- 参考:[.claude/agents/doc-aligner.md](.claude/agents/doc-aligner.md)
+**3. 文档同步**(文档与现实偏差,如「PRD §X 不准」「升 v1.1」)
+→ **6 份必扫**(PRD / 架构 / 人格 / flows / UAT / **roadmap**)→ 小修 in-place / 章节级升 v1.x / 重大走 ADR → 同步 BASELINE.md 版本号
+→ 易漏:**roadmap**(详 doc-aligner.md 漏升经验)
+→ SOP:[.claude/agents/doc-aligner.md](.claude/agents/doc-aligner.md)
 
-**4. 出口检查**(原 `gate-checker`)
-- 触发:Milestone 末(「M{N} 出口检查」/「出口判断」)
-- 步骤:**几乎只读**,对照路线图 §7.<M> 出口清单 → 跑代码状态 / progress 行 ✅ / CI 历史 / 性能预算 → 写 `progress/gate-m{N}.md`(达成 / 未达成 + 修复任务清单)→ **不修代码 / 不改文档**(发现偏差留给场景 3)
-- DoD:`progress/gate-m{N}.md` 存在 + 出口判断明确 + 用户决定合 main + tag
-- 参考:[.claude/agents/gate-checker.md](.claude/agents/gate-checker.md)
+**4. 出口检查**(milestone 末,如「M{N} 出口检查」)
+→ **几乎只读**:对照路线图 §7.<M> 出口清单 → 跑 progress / git log / CI 历史 / 性能预算 → 写 `progress/gate-m{N}.md`(达成 / 未达成 + 修复任务清单)→ **不修代码 / 不改文档**(偏差留给场景 3)
+→ SOP:[.claude/agents/gate-checker.md](.claude/agents/gate-checker.md)
 
-## Agent IO 契约(单 main 接力,subagent 不互调)
+## Agent IO 契约(目标协作模式 — 网关修复后)
 
-⚠️ Claude Code subagent **不能 spawn 其他 subagent** — 任何跨角色协作都从 main conversation 接力。
+> ⚠️ 当前阶段不走本节 chain pattern(详 § Agent 决策矩阵 § 当前模式)。本节描述网关修好后的 spawn / 接力规则,作目标模式留存。
+
+Claude Code subagent **不能 spawn 其他 subagent** — 任何跨角色协作都从 main conversation 接力。
 
 **典型 chain pattern**:
 
-1. main → `module-implementer` 实施 → 完成 1 task → 更 `progress/CURRENT.md` + atomic commit → 返回 main
-2. 实施期**发现新决策需求**:main → `adr-author` 起草 Proposed → 用户签字 → 改 Accepted → main 接力 → `module-implementer` 继续
-3. 实施期**发现文档偏差**:main → `doc-aligner` 扫 6 份并同步 → main 接力 → `module-implementer` 继续
-4. **Milestone 末**:main → `gate-checker` 生成 `progress/gate-m{N}.md` → 出口达成 → 用户合 main + tag → 启动下一 milestone
+1. main → `module-implementer` 实施 → 完成 1 task → `/ship-task` 收口 → 返回 main
+2. 实施期发现新决策需求:main → `adr-author` 起 Proposed → 用户签字 → Accepted → main 接力 → `module-implementer` 继续
+3. 实施期发现文档偏差:main → `doc-aligner` 扫 6 份并同步 → main 接力 → `module-implementer` 继续
+4. Milestone 末:main → `gate-checker` 生成 `progress/gate-m{N}.md` → 出口达成 → 用户合 main + tag → 启动下一 milestone
 
-**所有 agent 共享的输入契约**:进入 session 必读 `CLAUDE.md` + `progress/CURRENT.md` + 角色定义文件(`.claude/agents/<role>.md`)。
-**所有 agent 共享的输出契约**:完成 1 task 必更 `progress/CURRENT.md`(`gate-checker` 例外,但写 `progress/gate-m{N}.md`)。
+共享输入契约:进入 session 必读启动协议 3 件 + 角色定义文件。
+共享输出契约:完成 task 后 `/ship-task` 收口(`gate-checker` 例外,写 `progress/gate-m{N}.md`)。
 
 ## 性能预算速查
 

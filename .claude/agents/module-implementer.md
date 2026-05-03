@@ -44,7 +44,7 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 5. 模块完成时:
    a. 更 progress/m{N}.md 整行 ✅
    b. progress/decisions-log.md 加 1 行变更摘要
-   c. 推 PR,等用户 review + merge 到 milestone 分支
+   c. `/ship-task` 收口(push 当前 feat 分支),用户 review feature branch;milestone 末合 main
 ```
 
 ## 完成定义(DoD)

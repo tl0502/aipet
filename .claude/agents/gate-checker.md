@@ -60,12 +60,12 @@ tools: Read, Grep, Glob, Bash, Write
 - ✅ 写 `progress/CURRENT.md`(更新 milestone 状态)
 - ❌ **不写代码**(src / src-tauri 只读)
 - ❌ 不修改 docs/AIPET-obsidian/(若发现文档偏差,写到 gate 报告里,留给 doc-aligner)
-- ❌ 不修复阻塞(留给 module-implementer)
+- ❌ 不修复阻塞(留给 main 实施场景 / 网关修复后由 module-implementer)
 
 ## 完成定义
 
 - [ ] `progress/gate-m{N}.md` 已生成,含 4 大段(必达 / 可妥协 / KPI / 风险)
 - [ ] 结论明确:出口达成 / 修复后再检查 / 降级延期
 - [ ] 若出口达成,建议下一步含 tag 名 + M{N+1} 启动动作
-- [ ] 若出口未达成,具体修复任务清单含 owner 建议(留给 module-implementer 角色)
+- [ ] 若出口未达成,具体修复任务清单含 owner 建议(留给 main 实施场景 / 网关修复后由 module-implementer)
 - [ ] progress/CURRENT.md 已更新本 milestone 状态

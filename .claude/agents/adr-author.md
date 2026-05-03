@@ -51,7 +51,7 @@ permissionMode: plan
 - ✅ 修改 `docs/AIPET-obsidian/M0-ADRs/README.md`(总表)
 - ✅ 修改 `docs/AIPET-obsidian/BASELINE.md`(ADR 表)
 - ❌ 不修改 ADR-001~014(已 Accepted)
-- ❌ 不写代码(那是 module-implementer 的活)
+- ❌ 不写代码(代码实施由 main 直接做;网关修复后由 module-implementer)
 
 ## 完成定义
 
