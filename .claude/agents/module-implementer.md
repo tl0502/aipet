@@ -1,6 +1,7 @@
 ---
 name: module-implementer
 description: 实现 PRD §6 单个模块(A 桌宠壳层 / B 对话 / C 提醒 / ... / S.4 用户纪念日)的 worker 角色。当用户分配模块号或 story ID 时主动使用 — 触发短语:"实现 X 模块" / "继续 B.3.a" / "实施 H 人格" / 单个模块号 / 单个 story ID。读 BASELINE → 对应模块 ADR → 架构 v1.0 § 对应章节,拆 stories → 实现 → 写 test → 更 progress/CURRENT.md → atomic commit。
+tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
 # Module Implementer

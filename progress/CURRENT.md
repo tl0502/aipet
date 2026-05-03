@@ -6,7 +6,7 @@
 - **Active branch**:`feat/m1-d2-window-interaction`
 - **Last commit**:`30cfb45 chore(gitignore): expand to 13 categories + untrack .obsidian/`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-03(`/ship-task` 流程固化)
+- **Last updated**:2026-05-03(`module-implementer` frontmatter 补 `tools` 修复 + 决策矩阵补 subagent 选用判断)
 
 ---
 
@@ -73,6 +73,7 @@
 - 2026-05-02:vibecoding v2 hook ESM 冲突修复(脚本重命名为 `.cjs`,绕开 `package.json: "type":"module"` 强制 ESM 解析;6 项 stdin 用例全部通过 deny/放行预期)
 - 2026-05-02:.gitignore 收口(13 类分组,补 vitest coverage / Vite 缓存 / Obsidian / SQLite 运行时 / Bundle / 编辑器临时);整个 `docs/AIPET-obsidian/.obsidian/` 改为 ignore 并 `git rm --cached`,堵住 `obsidian-local-rest-api` API key + TLS 私钥泄露口;⚠️ Follow-up:用户需在 Obsidian 端 rotate API key(旧 key 永久存在 git 历史,但仓库未公开,风险有限)
 - 2026-05-03:`/ship-task` 固化 Git 收口流程:完成 task 后检查敏感文件/progress/验证,atomic commit 并 push 当前 `feat/*` 到 `origin`;CLAUDE.md 同步明确远程最新进度先看 feature branch,不是 main
+- 2026-05-03:`module-implementer` agent 经 main session 实施期排查发现 frontmatter 缺 `tools` 字段未注册(对比 adr-author / doc-aligner / gate-checker 均有);补 `tools: Read, Write, Edit, Glob, Grep, Bash` 修复,vibecoding v2 的 4 个 agent 全部可用。同步 CLAUDE.md 决策矩阵下方加 **subagent 选用判断准则**(冷启动重读启动协议 vs main 已有上下文的性价比权衡:小任务 ≤ 0.5d + main 已勘察 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent)
 
 ---
 

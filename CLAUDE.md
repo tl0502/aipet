@@ -59,6 +59,11 @@
 | 文档同步(6 份基线 + 路线图) | `doc-aligner` | "PRD §X 不准" / "升 v1.1" / "与现实偏差" |
 | Milestone 出口检查(M1-M5 末) | `gate-checker` | "M{N} 出口检查" / "milestone 出口报告" |
 
+> **subagent 选用判断**(2026-05-03 实施期补充):
+> 上表是默认推荐。当**任务 ≤ 0.5 day** 且 **main 已勘察过相关代码与文档上下文**时,可省 subagent 由 main 直接执行 — subagent 冷启动需重读启动协议 + 重新勘察,丢失 main 已有上下文,小任务上性价比反转。
+> ✅ 适用 main 直接做:小型代码改动 / 单文件实施 / main 刚做完同类任务的连续推进。
+> ❌ 仍走 subagent:跨 module 重构、模板化产出(ADR / 文档同步 / 出口报告)、需 plan 模式审批的决策类任务。
+
 ## Agent IO 契约(单 main 接力,subagent 不互调)
 
 ⚠️ Claude Code subagent **不能 spawn 其他 subagent** — 任何跨角色协作都从 main conversation 接力。
