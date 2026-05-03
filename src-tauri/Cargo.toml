@@ -21,6 +21,12 @@ thiserror = "2"
 chrono = { version = "0.4", features = ["serde"] }
 windows = { version = "0.61", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation", "Win32_Security_Cryptography"] }
 
+# H.1 PersonaService:gray_matter 解 frontmatter / sqlx 直连 plugin 创建的 sqlite
+# (tauri-plugin-sql 2.4 的 DbPool 公共方法被注释掉,Rust 端无法借 plugin 的 Pool,只能自开)
+# sqlx 版本必须与 plugin 一致(0.8)避免 transitive 飘移;default-features = false 砍掉非必要 feature
+gray_matter = { version = "0.2", default-features = false, features = ["yaml"] }
+sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
+
 # 仅桌面平台启用全局快捷键(避免 mobile 编译报错;M1-M5 不上 mobile,提前规范)
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-global-shortcut = "2"

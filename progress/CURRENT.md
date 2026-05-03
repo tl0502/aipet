@@ -6,7 +6,7 @@
 - **Active branch**:`feat/m1-d2-window-interaction`
 - **Last commit**:`30cfb45 chore(gitignore): expand to 13 categories + untrack .obsidian/`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-03(I.2 CryptoService 完成:Windows DPAPI 封装 + 4 单测全过)
+- **Last updated**:2026-05-03(H.1 PersonaService MVP 完成:gray_matter 解析内置 momo + sqlx 写 personas/persona_snapshots + 6 单测全过)
 
 ---
 
@@ -43,6 +43,7 @@
 | .gitignore 升级(28 → 85 行,新增测试/缓存/Obsidian/运行时 DB/Bundle/编辑器临时分类)+ `git rm --cached` 移除已泄露的 .obsidian/ 整目录(含 obsidian-local-rest-api 的 API key + TLS 私钥) | `30cfb45` | 2026-05-02 |
 | `/ship-task` 项目命令 + CLAUDE.md 流程补强:完成 task 后必须 progress + atomic commit + push 当前 `feat/*` 到 origin,避免本地 commit 未同步 GitHub | (本笔)| 2026-05-03 |
 | **I.2 CryptoService**(Windows DPAPI 封装:`protect` / `unprotect` + `CRYPTOPROTECT_UI_FORBIDDEN` 防 UI;4 单测覆盖 round-trip / empty / binary safety / invalid ciphertext) | (本笔)| 2026-05-03 |
+| **H.1 PersonaService MVP**(`include_str!` 编译进 binary 的 momo + gray_matter 解 frontmatter + sqlx 直连写 personas/persona_snapshots + ADR-009 漏交付补完 momo.soul.md;6 单测覆盖 parse 成功 / 坏 YAML / 缺 id / 未知 schema / schema v1 兼容 / frontmatter 切除) | (本笔)| 2026-05-03 |
 
 ---
 
@@ -56,9 +57,9 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **H.1 PersonaService MVP**(1 day)— 加载 `_builtin/momo.soul.md`,解析 frontmatter + Markdown,写入 `personas` 表
-2. **F.1 MemoryService MVP**(0.5 day)— `messages` 表 CRUD + 90 天清理 + summary 占位
-3. **F.2 NicknameService facade**(0.5 day)— 读 `user_state.user_nickname` / `pet_nickname`,触发 `nickname.changed` 事件
+1. **F.1 MemoryService MVP**(0.5 day)— `messages` 表 CRUD + 90 天清理 + summary 占位
+2. **F.2 NicknameService facade**(0.5 day)— 读 `user_state.user_nickname` / `pet_nickname`,触发 `nickname.changed` 事件
+3. **B.1 LLMProvider**(1 day)— OpenAI 兼容 streaming chat completion + DPAPI 取 key(依赖 I.2 ✅)
 
 详见 [m1.md](m1.md) 完整拆解。
 
@@ -78,6 +79,7 @@
 - 2026-05-03:`module-implementer` 修好 frontmatter 后,继续测试 Explore / general-purpose 两个 subagent,发现**所有 subagent 路径在第三方 API 网关(`Calcium-Ion/new-api`)上 nil pointer panic**(显式 `model: opus` 也 500;不指定走默认模型则 400 "1m 上下文已经全量可用")。判定为网关 bug 而非 Claude Code 设计问题。决议:**当前阶段所有任务由 main session 直接执行**;CLAUDE.md 决策矩阵章节顶部加 ⚠️ 状态标注 + 末尾加「main 直接做的 4 类场景实操指引」(实施 / 决策起草 / 文档同步 / 出口检查),把 4 个 .claude/agents/<role>.md 当 SOP 参考而非 spawn 目标;网关修好撤本节,恢复 subagent 协作
 - 2026-05-03:Claude 流程文件深度巡检后整体减冗:① CLAUDE.md "完成 task 必更 progress + atomic commit + push" 重 5 次 → 收口到 § 提交规范 唯一权威源,其他 4 处改"详 § 提交规范";② 启动协议第 3 步措辞中性化(「按场景」替代「被指派」);③ § Agent 决策矩阵 / § subagent 选用判断 / § 4 类场景 / § IO 契约 4 段重组为 2 段(当前模式优先 + 目标模式备查),每场景 2-3 行紧凑表达;④ adr-author / gate-checker / module-implementer 3 份 agent .md 的 module-implementer 引用同步成"main 直接做 / 网关修复后由 module-implementer";⑤ hook 注释 "由 adr-author 角色起草" → 「决策起草」SOP 中性表述。CLAUDE.md 137 → 130 行,信息密度提升,新 session 一打开就能定位「当前 subagent 不可用,main 直接做」
 - 2026-05-03:**I.2 CryptoService 落地** — `src-tauri/src/services/crypto.rs` 用 windows 0.61 crate 直调 `CryptProtectData` / `CryptUnprotectData`,标志位 `CRYPTOPROTECT_UI_FORBIDDEN` 防止 DPAPI 弹 UI(隐私边界 #4 硬要求)。`CryptoError` 用 thiserror 包裹 `windows::core::Error`,与现有 `AppError` 风格一致。Cargo.toml 加 `Win32_Security_Cryptography` feature。4 单测全过(round-trip / empty / binary safety / invalid ciphertext);目前 `protect`/`unprotect` dead_code 警告会在 B.1 LLMProvider 接入后自然消除。
+- 2026-05-03:**H.1 PersonaService MVP 落地** — ① 内置 momo 走 `include_str!` 编译进 binary(与 migrations/001_init.sql 同款),路径 `src-tauri/personas/_builtin/momo.soul.md`,M0 ADR-009 漏交付的 deliverable 顺手补完;② `gray_matter` (yaml feature) 解析 frontmatter,`parse_persona(&str)` 设计成纯字符串入参不耦合 IO,H.2 用户导入 / H.3 远程下载直接复用解析层;③ 关键风险触发 — `tauri-plugin-sql 2.4` 的 `DbPool::sqlite()` 公共方法被注释掉(wrapper.rs 行 37-64),Rust 端无法借 plugin Pool;按 plan 降级路径自开 `sqlx 0.8`(版本与 plugin 一致)短期连接,DB 路径用 `app.path().app_config_dir()` 与 plugin 一致;④ `personas` 走 `ON CONFLICT(id) DO UPDATE`,`persona_snapshots` 走 `(persona_id, version)` 唯一性守卫避免堆行;⑤ 6 单测覆盖 parse 成功/坏 YAML/缺 id/未知 schema/schema v1 兼容/frontmatter 切除。lib.rs setup 用 `tauri::async_runtime::spawn` 异步 seed,失败仅 eprintln 不阻塞启动。
 
 ---
 

@@ -46,6 +46,14 @@ pub fn run() {
             crate::services::cursor_tracker::spawn(app.handle().clone());
             crate::services::tray::setup(app.handle())?;
             crate::services::shortcuts::setup(app.handle())?;
+            // H.1 内置人格 seed:plugin migrations 已建表,这里 UPSERT momo 行
+            // 异步跑 + 失败仅 eprintln,不阻塞启动也不弹错误 UI(MVP 期)
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = crate::services::persona::seed_builtin(&app_handle).await {
+                    eprintln!("[setup] seed_builtin failed: {e}");
+                }
+            });
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window(PET_WINDOW_LABEL) {
                 window.open_devtools();
