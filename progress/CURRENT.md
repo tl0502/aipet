@@ -6,7 +6,7 @@
 - **Active branch**:`feat/m1-d2-window-interaction`
 - **Last commit**:`30cfb45 chore(gitignore): expand to 13 categories + untrack .obsidian/`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-03(F.1 MemoryService MVP 完成:messages CRUD + summary 占位 + 私有 cleanup stub;**放弃 90 天自动清理**改默认无限保留)
+- **Last updated**:2026-05-03(F.2 NicknameService facade 完成:nicknames 单行表 + 5 IPC commands + nickname.changed event;6 笔已 push HTTPS)
 
 ---
 
@@ -45,6 +45,7 @@
 | **I.2 CryptoService**(Windows DPAPI 封装:`protect` / `unprotect` + `CRYPTOPROTECT_UI_FORBIDDEN` 防 UI;4 单测覆盖 round-trip / empty / binary safety / invalid ciphertext) | (本笔)| 2026-05-03 |
 | **H.1 PersonaService MVP**(`include_str!` 编译进 binary 的 momo + gray_matter 解 frontmatter + sqlx 直连写 personas/persona_snapshots + ADR-009 漏交付补完 momo.soul.md;6 单测覆盖 parse 成功 / 坏 YAML / 缺 id / 未知 schema / schema v1 兼容 / frontmatter 切除) | (本笔)| 2026-05-03 |
 | **F.1 MemoryService MVP**(messages 表 CRUD `insert/list/delete_by_id/delete_by_conversation` + ULID 主键 + summary 占位字符串 + cleanup_messages_older_than 私有 stub;**放弃 90 天自动清理**改默认无限保留 + 用户主动清理;6 单测覆盖 ULID/RFC3339 生成 / 不合法 role/mode 拒绝 / 全部 valid 组合接受 / cutoff 90 天计算 / placeholder 自识别) | (本笔)| 2026-05-03 |
+| **F.2 NicknameService facade**(nicknames 单行表 + get_pet/get_user/set_pet/set_user/restore_pet 5 个 service + 5 个 IPC commands + nickname.changed event;set_pet 自动备份 previous,restore_pet 原子 swap 让用户可来回切;get_pet 三级 fallback nicknames → active persona → "默默";4 单测覆盖 event payload / 兜底常量) | (本笔)| 2026-05-03 |
 
 ---
 
@@ -58,8 +59,8 @@
 
 ## Next 3 Tasks(优先级降序)
 
-1. **F.2 NicknameService facade**(0.5 day)— 读 `user_state.user_nickname` / `pet_nickname`,触发 `nickname.changed` 事件
-2. **B.1 LLMProvider**(1 day)— OpenAI 兼容 streaming chat completion + DPAPI 取 key(依赖 I.2 ✅)
+1. **B.1 LLMProvider**(1 day)— OpenAI 兼容 streaming chat completion + DPAPI 取 key(依赖 I.2 ✅)
+2. **OpenClaw 文件操作 ADR-016 research**(1-2h)— 用户 2026-05-03 提出方向;F.2 落地后做研究 + 起草 Proposed
 3. **A.6 智能穿透收口 polish**(0.5 day,D10 收口前)— II bbox 阈值降 IPC + III `tauri://moved` 立即上报修拖动错位
 
 详见 [m1.md](m1.md) 完整拆解。
@@ -83,6 +84,8 @@
 - 2026-05-03:**H.1 PersonaService MVP 落地** — ① 内置 momo 走 `include_str!` 编译进 binary(与 migrations/001_init.sql 同款),路径 `src-tauri/personas/_builtin/momo.soul.md`,M0 ADR-009 漏交付的 deliverable 顺手补完;② `gray_matter` (yaml feature) 解析 frontmatter,`parse_persona(&str)` 设计成纯字符串入参不耦合 IO,H.2 用户导入 / H.3 远程下载直接复用解析层;③ 关键风险触发 — `tauri-plugin-sql 2.4` 的 `DbPool::sqlite()` 公共方法被注释掉(wrapper.rs 行 37-64),Rust 端无法借 plugin Pool;按 plan 降级路径自开 `sqlx 0.8`(版本与 plugin 一致)短期连接,DB 路径用 `app.path().app_config_dir()` 与 plugin 一致;④ `personas` 走 `ON CONFLICT(id) DO UPDATE`,`persona_snapshots` 走 `(persona_id, version)` 唯一性守卫避免堆行;⑤ 6 单测覆盖 parse 成功/坏 YAML/缺 id/未知 schema/schema v1 兼容/frontmatter 切除。lib.rs setup 用 `tauri::async_runtime::spawn` 异步 seed,失败仅 eprintln 不阻塞启动。
 - 2026-05-03:**F.1 MemoryService MVP + 设计偏离 90 天清理** — ① `services/memory.rs` 实现 messages 表 CRUD(insert/list/delete_by_id/delete_by_conversation)+ ULID 主键(`ulid` crate 1.x)+ summary 占位字符串 + `cleanup_messages_older_than(days)` 私有 stub;② **关键设计偏离**:m1.md F.1 字面 "90 天清理" 与 PRD §73 / 架构 §549 "默认 90 天 + is_deleted 软删" 措辞,经讨论后认定**偏离 local-first 精神**(数据已在用户本地,自动清空对话剥夺老朋友价值);改为**默认无限保留 + 用户主动清理**(类似 ChatGPT 网页),`cleanup_messages_older_than` 留 stub 不在 setup 调用,留给将来设置面板"X 天自动清理"开关触发;③ B.2 ChatService 拼 system prompt 时 context 爆炸问题改用**摘要压缩**(F.1 summary 占位是伏笔)而非删消息;④ PRD §73 + 架构 §549 措辞偏差留给后续 doc-aligner SOP 同步;⑤ 6 单测覆盖纯逻辑(ULID/RFC3339 生成、role/mode 校验、cutoff 计算、placeholder 自识别),DB 测试推到后续 milestone(架构有 testcontainer 设计)。
 - 2026-05-03:**用户产品方向扩展** — 用户明确提出"AI 桌宠的文件操作能力也是有必要的,类似 OpenClaw"(陪伴 + 工具能力的双轨定位)。Follow-up:F.2 / B.1 落地后做 research(MCP / 文件读写权限模型 / 安全护栏与文件操作的边界)+ 起草 ADR(候选编号 ADR-016 桌宠工具能力)。本次不偏题。
+- 2026-05-03:**F.2 NicknameService facade 落地** — ① m1.md 字面"读 user_state.user_nickname / pet_nickname"与实际 schema 不符,实际是 `nicknames` 单行表(id=1 CHECK + pet_nickname / pet_nickname_previous / user_nickname / updated_at);**改用 nicknames 表**,精确且少一层间接,m1.md 的"user_state.xxx"措辞偏差留 doc-aligner 后续同步;② 5 个 service 函数(get_pet/get_user/set_pet/set_user/restore_pet)+ 5 个 IPC commands 注册 invoke_handler;③ get_pet 三级 fallback `nicknames.pet_nickname → active persona.name → "默默"`,UI 永远拿到非空字符串;④ set_pet 通过 ON CONFLICT UPSERT 自动把当前值搬到 previous(为 restore 备份);⑤ restore_pet 用 SQLite 原子 swap(SET pet_nickname = pet_nickname_previous, pet_nickname_previous = pet_nickname),用户可来回切两个曾用名;⑥ emit `nickname.changed` { which: "pet"\|"user", value } 与架构 §711 IPC event 契约 byte-perfect 对齐;⑦ 4 单测覆盖事件 payload 序列化 / null value / 兜底常量 / event 名 — 与 persona/memory 同模式不测 DB。
+- 2026-05-03:**6 笔本地 commit push 到 origin** — 远程 SSH 22 在大陆 connection reset,SSH 443 也超时,改用 HTTPS push 一次性同步(`b534877..147eed6`);git credential helper 已 cache PAT,后续 push 无需重新认证。CLAUDE.md / `/ship-task` 流程未变,未来 push 走 HTTPS remote 自动生效。
 
 ---
 

@@ -4,10 +4,12 @@
 // M1 D3:I.2 crypto(Windows DPAPI 封装,为 secrets 表 ciphertext 提供 protect/unprotect)
 // M1 D3:H.1 persona(加载内置 momo + 解析 + 写 personas/persona_snapshots)
 // M1 D3:F.1 memory(messages 表 CRUD + summary 占位;**默认无限保留**,用户主动清理)
-// M1 D3+:NicknameService / ChatService
+// M1 D3:F.2 nickname(单行 nicknames 表 facade + nickname.changed event)
+// M1 D3+:ChatService
 pub mod crypto;
 pub mod cursor_tracker;
 pub mod memory;
+pub mod nickname;
 pub mod persona;
 pub mod shortcuts;
 pub mod tray;

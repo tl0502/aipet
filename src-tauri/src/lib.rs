@@ -3,7 +3,7 @@ mod error;
 mod services;
 mod state;
 
-use commands::{ping, window};
+use commands::{nickname, ping, window};
 use services::window_actions::PET_WINDOW_LABEL;
 use state::AppState;
 use tauri::Manager;
@@ -77,6 +77,11 @@ pub fn run() {
             window::update_hitbox,
             window::start_drag,
             window::stop_drag,
+            nickname::nickname_get_pet,
+            nickname::nickname_get_user,
+            nickname::nickname_set_pet,
+            nickname::nickname_set_user,
+            nickname::nickname_restore_pet,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
