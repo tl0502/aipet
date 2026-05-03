@@ -1,0 +1,240 @@
+/* DEV-1 DevPanel 专用样式 — 深色主题 + 等宽字体 + 简洁 grid */
+
+.dev-panel {
+  --bg: #1e1e1e;
+  --bg-alt: #252525;
+  --bg-hover: #2d2d2d;
+  --border: #3a3a3a;
+  --text: #d4d4d4;
+  --text-muted: #888;
+  --accent: #569cd6;
+  --accent-hover: #6db0e0;
+  --error: #f48771;
+  --success: #6a9955;
+
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Consolas', 'Cascadia Code', 'Source Code Pro', monospace;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dev-panel header {
+  padding: 10px 16px;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dev-panel header h1 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.dev-panel header .meta {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.dev-panel nav.tabs {
+  display: flex;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.dev-panel nav.tabs button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  border-bottom: 2px solid transparent;
+}
+
+.dev-panel nav.tabs button:hover {
+  color: var(--text);
+  background: var(--bg-hover);
+}
+
+.dev-panel nav.tabs button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.dev-panel .tab-content {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+.dev-panel button.action {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 3px;
+}
+
+.dev-panel button.action:hover {
+  background: var(--accent-hover);
+}
+
+.dev-panel button.action:disabled {
+  background: var(--border);
+  cursor: not-allowed;
+}
+
+.dev-panel input,
+.dev-panel select,
+.dev-panel textarea {
+  background: var(--bg-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 3px;
+}
+
+.dev-panel input:focus,
+.dev-panel select:focus,
+.dev-panel textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.dev-panel pre {
+  background: var(--bg-alt);
+  padding: 10px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  overflow: auto;
+  margin: 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.dev-panel pre.error {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.dev-panel pre.success {
+  border-color: var(--success);
+}
+
+.dev-panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.dev-panel table th,
+.dev-panel table td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+  vertical-align: top;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dev-panel table th {
+  background: var(--bg-alt);
+  position: sticky;
+  top: 0;
+}
+
+.dev-panel .split {
+  display: flex;
+  gap: 12px;
+  height: 100%;
+}
+
+.dev-panel .split .left {
+  flex: 0 0 280px;
+  overflow: auto;
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+}
+
+.dev-panel .split .right {
+  flex: 1;
+  overflow: auto;
+}
+
+.dev-panel ul.command-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dev-panel ul.command-list li {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.dev-panel ul.command-list li:hover {
+  background: var(--bg-hover);
+}
+
+.dev-panel ul.command-list li.active {
+  background: var(--accent);
+  color: white;
+}
+
+.dev-panel .category-tag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: var(--border);
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+.dev-panel .form-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dev-panel .form-row label {
+  flex: 0 0 100px;
+  color: var(--text-muted);
+}
+
+.dev-panel .form-row input {
+  flex: 1;
+}
+
+.dev-panel .event-line {
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.dev-panel .event-line .ts {
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+
+.dev-panel .event-line .name {
+  color: var(--accent);
+  font-weight: 600;
+  margin-right: 8px;
+}
