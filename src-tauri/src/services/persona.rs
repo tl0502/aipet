@@ -21,7 +21,7 @@ use gray_matter::engine::YAML;
 use gray_matter::Matter;
 use serde::Deserialize;
 use sqlx::sqlite::SqliteConnectOptions;
-use sqlx::{ConnectOptions, Connection, SqliteConnection, Transaction};
+use sqlx::{ConnectOptions, Connection, Transaction};
 use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 use thiserror::Error;
