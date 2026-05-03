@@ -180,7 +180,13 @@ export class VRMRuntime {
     maxX = Math.min(sz.x, maxX)
     maxY = Math.min(sz.y, maxY)
 
-    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY }
+    const width = maxX - minX
+    const height = maxY - minY
+    if (!isFinite(width) || !isFinite(height) || width <= 0 || height <= 0) {
+      return null
+    }
+
+    return { x: minX, y: minY, width, height }
   }
 
   destroy(): void {

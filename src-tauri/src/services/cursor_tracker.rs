@@ -12,16 +12,14 @@ const HYSTERESIS_PX: i32 = 5;
 
 pub fn spawn(app: AppHandle) {
     thread::spawn(move || {
-        let window = match app.get_webview_window("pet") {
-            Some(w) => w,
-            None => return,
-        };
-
         let mut last_ignore = true;
-        let _ = window.set_ignore_cursor_events(true);
 
         loop {
             thread::sleep(Duration::from_millis(TICK_INTERVAL_MS));
+
+            let Some(window) = app.get_webview_window("pet") else {
+                break;
+            };
 
             let cursor = match get_cursor_pos() {
                 Some(p) => p,
@@ -45,7 +43,9 @@ pub fn spawn(app: AppHandle) {
             };
 
             if want_ignore != last_ignore {
-                let _ = window.set_ignore_cursor_events(want_ignore);
+                if window.set_ignore_cursor_events(want_ignore).is_err() {
+                    break;
+                }
                 last_ignore = want_ignore;
             }
         }

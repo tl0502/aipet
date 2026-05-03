@@ -40,6 +40,17 @@ function reportHitbox() {
   const cssW = local.width
   const cssH = local.height
 
+  if (
+    !Number.isFinite(cssX) ||
+    !Number.isFinite(cssY) ||
+    !Number.isFinite(cssW) ||
+    !Number.isFinite(cssH) ||
+    cssW <= 0 ||
+    cssH <= 0
+  ) {
+    return
+  }
+
   petStore.setBounds({ x: cssX, y: cssY, w: cssW, h: cssH })
   updateHitbox(cssX, cssY, cssW, cssH).catch((err) =>
     console.error('[hitbox] update failed', err)
