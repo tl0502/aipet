@@ -12,7 +12,10 @@ const HYSTERESIS_PX: i32 = 5;
 
 pub fn spawn(app: AppHandle) {
     thread::spawn(move || {
-        let mut last_ignore = true;
+        // None = 从未调用过 set_ignore_cursor_events,首次 want_ignore 必触发 set
+        // (修补 commit 42bb4c7 的 regression:老代码 loop 前显式 init 为 true,
+        //  改进时丢了这一步,导致启动 1-2s 内桌宠区域实际不穿透)
+        let mut last_ignore: Option<bool> = None;
 
         loop {
             thread::sleep(Duration::from_millis(TICK_INTERVAL_MS));
@@ -33,7 +36,8 @@ pub fn spawn(app: AppHandle) {
             let want_ignore = if is_dragging {
                 false
             } else if let Some(box_) = hitbox {
-                if last_ignore {
+                // 滞后区判断:None(首次)按"目前在穿透"处理,走 contains 严格判断
+                if last_ignore.unwrap_or(true) {
                     !box_.contains(cursor.0, cursor.1)
                 } else {
                     !box_.expand(HYSTERESIS_PX).contains(cursor.0, cursor.1)
@@ -42,11 +46,11 @@ pub fn spawn(app: AppHandle) {
                 true
             };
 
-            if want_ignore != last_ignore {
+            if last_ignore != Some(want_ignore) {
                 if window.set_ignore_cursor_events(want_ignore).is_err() {
                     break;
                 }
-                last_ignore = want_ignore;
+                last_ignore = Some(want_ignore);
             }
         }
     });
