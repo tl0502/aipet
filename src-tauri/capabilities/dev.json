@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "dev",
+  "description": "DEV-1 Dev panel capability — debug-only window 'dev' 的完整能力授权。Release 构建虽含本文件但 Rust 侧 dev_window/dev_commands 全被 #[cfg(debug_assertions)] 排除,capability 形同虚设无安全影响。",
+  "windows": ["dev"],
+  "permissions": [
+    "core:default",
+    "sql:default"
+  ]
+}

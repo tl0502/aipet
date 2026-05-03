@@ -4,6 +4,8 @@ mod services;
 mod state;
 
 use commands::{nickname, ping, window};
+#[cfg(debug_assertions)]
+use commands::dev;
 use services::window_actions::PET_WINDOW_LABEL;
 use state::AppState;
 use tauri::Manager;
@@ -91,6 +93,12 @@ pub fn run() {
             nickname::nickname_set_pet,
             nickname::nickname_set_user,
             nickname::nickname_restore_pet,
+            #[cfg(debug_assertions)]
+            dev::dev_list_tables,
+            #[cfg(debug_assertions)]
+            dev::dev_query_table,
+            #[cfg(debug_assertions)]
+            dev::dev_get_logs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

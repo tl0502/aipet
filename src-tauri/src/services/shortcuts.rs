@@ -5,6 +5,7 @@
 //   (M1 后期 B.3 ChatPanel 上线后,前端监听此事件打开对话面板)
 // - Ctrl+Shift+B  → hide 主窗口 + emit("shortcut:boss-key")
 //   (M2 BossKeyService 接管,届时变成多窗口隐藏 + 提醒缓冲 + 托盘图标变更)
+// - Ctrl+Shift+D  → 打开 DevPanel(仅 debug build,DEV-1)
 //
 // 设计要点:
 // - 纯 Rust 端注册;不暴露 register/unregister 给前端,因此不需 capabilities/ 配置
@@ -25,6 +26,8 @@ const EVENT_BOSS_KEY: &str = "shortcut:boss-key";
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let chat = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::Space);
     let boss = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyB);
+    #[cfg(debug_assertions)]
+    let dev = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::SHIFT), Code::KeyD);
 
     app.plugin(
         tauri_plugin_global_shortcut::Builder::new()
@@ -39,6 +42,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                     window_actions::hide_pet(app);
                     let _ = app.emit(EVENT_BOSS_KEY, ());
                 }
+                #[cfg(debug_assertions)]
+                if sc == &dev {
+                    if let Err(e) = crate::services::dev_window::open_dev_window(app) {
+                        eprintln!("[shortcuts] failed to open dev window: {e}");
+                    }
+                }
             })
             .build(),
     )?;
@@ -52,6 +61,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         eprintln!("[shortcuts] failed to register Ctrl+Shift+B: {e}");
     } else {
         eprintln!("[shortcuts] registered Ctrl+Shift+B → boss-key");
+    }
+    #[cfg(debug_assertions)]
+    if let Err(e) = app.global_shortcut().register(dev) {
+        eprintln!("[shortcuts] failed to register Ctrl+Shift+D: {e}");
+    } else {
+        eprintln!("[shortcuts] registered Ctrl+Shift+D → dev panel (debug-only)");
     }
     Ok(())
 }
