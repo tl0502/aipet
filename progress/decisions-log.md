@@ -309,7 +309,7 @@
 - **影响**:Cargo.toml(+ dev-dependencies tempfile + tokio macros/rt)/ services/mod.rs(+ `#[cfg(test)] pub mod test_db`)/ services/test_db.rs(新建,fresh_db fixture + 3 self-test)/ services/{secrets,nickname,memory,persona}.rs(各抽 1-5 inner helper + 集成测试)/ progress/test-coverage-2026-05-04.md(完整报告)
 - **关键学习**:① **DB integration test 不能再缺位** — M1 D2 H.1 / F.1 / F.2 / I.1 实施时若有 fresh_db fixture,plugin preload 这种"地基级" bug 不会潜伏 6 commits ② **sqlx 与 SQLite 默认 PRAGMA 不一致**是隐藏地雷,FK 行为差异在 prod 不会被发现直到第一次跨表写入 — 测试 + B.2 ensure_conversation 双保险 ③ **抽 inner helper > tauri mock**(testability vs prod 路径平衡的最优解)
 - **defer 项**:① P1 SqlitePool 抽象推到 M3+(并发 LLM 流 + scheduler + 主动陪伴写日志时再评估,届时若需要起 ADR-016)② P2 e2e smoke test 推到 M1 D5 I.1 完成 / B.2 接入后(届时 5 个 IPC 路径稳定,smoke 才有意义)③ PostToolUse hook(suggest-checks.cjs +DB 测试规则)推到 M1 D5+
-- **Ref**:`progress/test-coverage-2026-05-04.md`(完整 8 节报告)+ 本次 commit(待补)
+- **Ref**:`progress/test-coverage-2026-05-04.md`(完整 8 节报告)+ commit `4abceea`
 
 ---
 
