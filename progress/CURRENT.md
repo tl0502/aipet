@@ -4,9 +4,9 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`1fd4b87 fix(m1-d2): cursor_tracker last_ignore: Option<bool> 补 42bb4c7 init 语义`(本笔 /code-audit 命令落地 + 首次漏洞扫描尚未 commit)
+- **Last commit**:`6f6a252 chore(audit): /code-audit AI 漏洞审查命令落地 + 首次扫描 Pass`(本笔 /code-audit Run 2 补审尚未 commit)
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-03(/code-audit 命令落地 + 首次漏洞扫描:Pass / 0 Critical / 0 High / 5 Medium / 5 Low / 3 Won't fix)
+- **Last updated**:2026-05-03(/code-audit Run 2 补审 Run 1 漏读 20 文件:14 前端 + 6 Rust 辅助;累计 33/33 全覆盖,新增 7 Low + 3 Won't fix,无 Critical/High/Medium 增量;累计裁决 Pass)
 
 ---
 
@@ -48,7 +48,8 @@
 | **F.2 NicknameService facade**(nicknames 单行表 + get_pet/get_user/set_pet/set_user/restore_pet 5 个 service + 5 个 IPC commands + nickname.changed event;set_pet 自动备份 previous,restore_pet 原子 swap 让用户可来回切;get_pet 三级 fallback nicknames → active persona → "默默";4 单测覆盖 event payload / 兜底常量) | (本笔)| 2026-05-03 |
 | **DEV-1 开发期 Admin/Debug 面板**(独立 webview "dev" 窗口 + Ctrl+Shift+D 唤起 + 4 tabs:IPC Playground / Tables 查看 / Events 实时日志流 / Logs 占位;前后端全 `#[cfg(debug_assertions)]` + `import.meta.env.DEV` 双重排除,release 二进制零开发面板代码;白名单 5 张表 dev_query_table 防 SQL 注入;IPC playground 写死 12 个 commands 元数据,选中 → 表单填参 → 调用 → JSON 返回值;tsconfig 加 `vite/client` types 让 import.meta.env 可识别) | (本笔)| 2026-05-03 |
 | **M1 D2/D3 hardening 5 笔**(start_drag 顺序倒置防 cursor_tracker 卡死 / hitbox NaN-Inf-超范围拦截 + i64 中间运算 / persona seed sqlx::Transaction + ON CONFLICT(persona_id,version) DO NOTHING / migrations/002 先去重再 CREATE UNIQUE INDEX / state.rs Hitbox::contains+expand 全 saturating 链 + 7 单测覆盖 i32::MAX/MIN 边界 / cursor_tracker `last_ignore: Option<bool>` 补 42bb4c7 init 语义 regression(老代码 loop 前显式 set true 在 42bb4c7 把 window get 进 loop 时丢失,导致启动 1-2s 实际不穿透);cargo test 27 passed) | `1677cef` + `b49b7bd` + `59fd182` + `8d72f9c` + (本笔 cursor_tracker)| 2026-05-03 |
-| **/code-audit 命令落地 + 首次漏洞扫描**(`.claude/commands/code-audit.md` 8 维度纯漏洞扫描 + `.claude/agents/code-reviewer.md` SOP + `progress/.audit-state` 增量跟踪 + `.gitignore` 排除状态文件;基于 git diff 的增量审查,默认 `$staged`,显式 `HEAD~N..HEAD` / `$branch` / `$since-last` / `--full`;只查 8 维度技术漏洞[注入/加密/数据完整性/输入边界/并发/错误处理/信息泄露/LLM 越狱],不查业务/架构/产品决策/性能预算/测试覆盖率;首次审查 `$branch` 范围 33 文件 = Pass / 0 Critical / 0 High / 5 Medium / 5 Low / 3 Won't fix,产出 `progress/code-review-2026-05-03.md`)| (本笔)| 2026-05-03 |
+| **/code-audit 命令落地 + 首次漏洞扫描**(`.claude/commands/code-audit.md` 8 维度纯漏洞扫描 + `.claude/agents/code-reviewer.md` SOP + `progress/.audit-state` 增量跟踪 + `.gitignore` 排除状态文件;基于 git diff 的增量审查,默认 `$staged`,显式 `HEAD~N..HEAD` / `$branch` / `$since-last` / `--full`;只查 8 维度技术漏洞[注入/加密/数据完整性/输入边界/并发/错误处理/信息泄露/LLM 越狱],不查业务/架构/产品决策/性能预算/测试覆盖率;首次审查 `$branch` 范围 19/33 文件 = Pass / 0 Critical / 0 High / 5 Medium / 5 Low / 3 Won't fix,产出 `progress/code-review-2026-05-03.md`)| `6f6a252` | 2026-05-03 |
+| **/code-audit Run 2 补审**(用户复盘指出 Run 1 仅读 19/33 文件,补完前端 14 个 + Rust 辅助 6 个 = 20 文件;追加 ## Run 2 节到同日报告;累计 33/33 全覆盖,新增 7 Low + 3 Won't fix,无 Critical/High/Medium 增量;Low 集中在 vrm.ts H.2 用户导入未来反序列化预防 / useVRMModel console.log release 不 strip / 错误透传可能含路径 / Three.js lights 未显式 dispose / EventLog JSON.stringify 无 try/catch / window_snap i32 边界 / AppError dead_code Internal 路径泄露;累计裁决 Pass)| (本笔)| 2026-05-03 |
 
 ---
 
