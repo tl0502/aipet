@@ -4,9 +4,9 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`66114b5 feat(claude): add /milestone-gate total entry command`(本笔 CURRENT 同步是第 6 笔)
+- **Last commit**:`99066a8 docs(claude): align CLAUDE.md / decisions-log / audit-coverage / ship-task with P0 reality`(本笔 CURRENT 同步是第 8 笔)
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-04(audit-coverage P0 落地 4 笔 + plan §10.2 P1-3 milestone-gate(`66114b5`)+ P0-2 settings.local.json 清理 21 条 A+B 桶残留(本地 gitignored 不进 git)+ 本笔 CURRENT sync)
+- **Last updated**:2026-05-04(audit-coverage P0 落地 6 笔 + plan §10 P1-3/P0-2 + 用户主动复审发现 4 处治理同步缺口(`99066a8` F1+F2+F3+F4 修)+ 本笔 CURRENT sync;7 笔 git commit + 1 笔本地清理)
 
 ---
 
@@ -54,6 +54,7 @@
 | **audit-coverage P0 落地 4 笔 atomic**(用户 2026-05-04 提"项目检查除纯代码漏洞还需要什么",引出 10 类盘点 C1-C10;裁决 ✅ 2/10 + 🟡 3/10 + ❌ 5/10 缺位;P0 落地:① 5 份新 SOP commands + obs-checker agent 共 6 文件 1112 行 ② PostToolUse suggest-checks 4 类 advisory hook + settings.json 注册 ③ ship-task.md 加 7 类智能建议段 + code-audit.md Step 0 自取绕开网关 + gate-checker.md 加流程文件回归检查 ④ CURRENT sync;详见 `progress/audit-coverage-2026-05-04.md`)| `91dca81` → `eb764d6` → `cefc411` → `bed8442` | 2026-05-04 |
 | **plan §10.2 P1-3 /milestone-gate 总入口命令**(milestone 末打 1 个命令而非 5+1 个;7 步流程串联:perf-check → deps-audit → release-check → a11y-check → code-audit $branch → gate-checker 综合 → 终端汇总;5 个 --skip-* flag + --gate-only 模式;不修代码 / 不修 ship-task.md;**作为 audit-coverage 三层智能触发 L3 milestone 跨期视角**,补完 L1 hook + L2 ship-task + L3 milestone-gate 三层闭环;M1 末是首次启用同时建立 5 份 SOP 的 baseline)| `66114b5` | 2026-05-04 |
 | **plan §10.1 P0-2 settings.local.json 漂移清理**(漂移识别精算 21 条:A 桶 17 = 1 taskkill PID + 2 icon.ico 一次性 curl + 4 localhost:1420 stale 端口 curl + 4 临时调试 echo + 1 echo JSON 固定 path + 1 findstr stale 端口 + 1 一次性分支重命名 + 2 具体 git diff + 1 git add docs/;B 桶 4 = settings.json 完全重复的 cargo check */pnpm tauri */pnpm add */pnpm remove *;Write 整文件覆盖 91 → 69 行,JSON 合法验过;**.gitignore L54 排除不进 git**,本地 hygiene 直接生效)| (本地)| 2026-05-04 |
+| **用户主动复审 + 4 处治理同步缺口修补**(post-P0 follow-up audit)— 用户问"再检查一遍项目内的那些内容,我之前修改的你也有必要检查一遍",9 维度交叉审查发现 1 Critical(CLAUDE.md 完全没引用新落地 5 SOP / obs-checker / milestone-gate)+ 2 High(decisions-log 没记录本次 P0 / audit-coverage §5 漏 milestone-gate)+ 1 Low(ship-task obs-checker stub 标注)+ 1 Medium 遗留(6 笔 commit 缺 Co-Authored-By 签名,已 push 不修);本笔合并 F1+F2+F3+F4 一起修(纯 docs 改动 4 文件 +51 行)| `99066a8` | 2026-05-04 |
 
 ---
 
