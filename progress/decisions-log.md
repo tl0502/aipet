@@ -311,6 +311,15 @@
 - **defer 项**:① P1 SqlitePool 抽象推到 M3+(并发 LLM 流 + scheduler + 主动陪伴写日志时再评估,届时若需要起 ADR-016)② P2 e2e smoke test 推到 M1 D5 I.1 完成 / B.2 接入后(届时 5 个 IPC 路径稳定,smoke 才有意义)③ PostToolUse hook(suggest-checks.cjs +DB 测试规则)推到 M1 D5+
 - **Ref**:`progress/test-coverage-2026-05-04.md`(完整 8 节报告)+ commit `4abceea`
 
+### 2026-05-04 | 治理升级 — 测试覆盖底线 § + commit 审核 gate
+
+- **决策**:① CLAUDE.md 加 § 测试覆盖底线(实施期不可绕过),要求每 service / module 完成时 3 层覆盖必备(纯逻辑单测 + 真实路径集成测试 + dev panel e2e),单层不算 done ② CLAUDE.md § 提交规范一句话改写,完成 task 后**先报告改动汇总 + 验证结果给用户 → 用户批准后**再走 `/ship-task`,不再一气呵成自动 commit ③ `.claude/commands/ship-task.md` 加 Step 0 dry-run 报告 + 用户批准 gate(在前置上下文之后、必做检查之前),配套例外条款("直接 ship-task" / `--yes` 跳过)+ § 必做检查 第 5 步加测试覆盖底线 checklist
+- **理由**:① M1 W1 D3 SQLITE_CANTOPEN 双重 bug + B.1 hot-fix 验证流程暴露,7 services / 62 单测全是纯逻辑,DB 写入路径完整周期没真跑过 — "cargo test 通过 = task done" 的判据本身错位,必须正式化 3 层覆盖底线 ② 本次 B.1 hot-fix + 测试补齐用户实际就在用 "完成 → 报告 → 审核 → ship" 模式,但靠人自觉无强制力,用户要求加 gate 防 main session 误判 task 边界过早 commit ③ Step 0 例外条款保护自动化 / 简单场景 90% 秒批,复杂场景人工干预防扫雷
+- **影响**:CLAUDE.md(+13 行 § 测试覆盖底线 + § 提交规范 修订 ~3 行 + 1 行例外说明)+ ship-task.md(+18 行 Step 0 + 第 5 步 +6 行测试覆盖 checklist);所有 task 完成后 main session 必须先 dry-run 报告等批准,旧"一气呵成"行为废弃;测试覆盖底线对 H.2 PersonaWorkshop / B.2 ChatService / I.3 SettingsService 等后续模块强约束(必备 fresh_db / dev panel e2e)
+- **关键学习**:① **判据错位 ≠ 测试少** — bug 不是因为没测,是因为测的层次错;3 层覆盖比"加更多测试"更精准 ② **审核 gate 与 ship-task 工具解耦** — Step 0 是 ship-task 内的子步骤,不是新命令,与现有 SOP 兼容性最大 ③ **例外条款 = 用户授权口令** — `--yes` / "直接 ship-task" / "不用确认" 都识别,主动权在用户而非工具
+- **defer 项**:① 用户人工审核 vs CI 自动审核(M3+ CI 加 cargo test 真实 DB fixture 跑通门槛,届时考虑;现在仍是用户每次手批)② 测试覆盖底线在新 service 落地时是否需 module-implementer agent SOP 补 checklist(M1 D5+ subagent 网关恢复后做)
+- **Ref**:CLAUDE.md L23-32(§ 测试覆盖底线 + § 提交规范 修订)+ `.claude/commands/ship-task.md`(Step 0 + 必做检查第 5 步)+ 本次 commit(待补)
+
 ---
 
 ## 模板(新增条目时复制)

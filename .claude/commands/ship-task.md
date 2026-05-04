@@ -25,6 +25,22 @@ argument-hint: [commit-message]
 - .gitignore:
 @.gitignore
 
+## Step 0:dry-run 报告 + 用户批准 gate(必跑,2026-05-04 新增)
+
+进入 § 必做检查 之前,**必先输出**(短而完整,不要"现在我开始..."等冗余):
+
+1. **待 stage 文件清单**(`git status --porcelain` 全列,标记 modified / new / deleted)
+2. **验证结果**(`pnpm typecheck` / `pnpm lint` / `cd src-tauri && cargo check` / `cargo test` 通过数 — Rust/DB 改动跑 test,纯文档可省)
+3. **commit message 草稿**(完整,含 type / scope / subject / body)
+4. **风险点**(如有,例:跨 service / migration 不可逆 / 与遗留改动混合 / 敏感文件嫌疑)
+
+**等用户回复 "approve" / "ship" / "走" / "OK" 之类字样,才能进入 Step 1 必做检查**。
+用户提修改意见 → 调整后**重新跑 dry-run**(重新输出 1-4)→ 等批准。
+
+**例外(可绕过 Step 0)**:用户在调用时显式说「直接 ship-task」/「不用确认」/ 加 `--yes` flag,跳过 Step 0(用于自动化场景或用户明确授权)。
+
+> **理由**:M1 W1 D3 SQLITE_CANTOPEN 双重 bug + B.1 hot-fix 验证流程显示,task 边界 / 改动范围由 main session 自判时易过早 commit,Step 0 加一道审核 gate;90% 简单场景用户秒批,复杂场景用户能拦回 main session 误判。详 CLAUDE.md § 提交规范 + decisions-log 2026-05-04「commit 审核 gate」。
+
 ## 必做检查
 
 1. **分支检查**
@@ -60,6 +76,12 @@ argument-hint: [commit-message]
    cd src-tauri && cargo test
    ```
    UI/前端交互变更还需说明是否已通过 `pnpm dev` / `pnpm tauri:dev` 手测;若未手测,必须在输出中标明。
+
+   **测试覆盖底线**(2026-05-04 新增,与 CLAUDE.md § 测试覆盖底线 同步):
+   - DB-touching 改动(新加 service / sqlx 调用):必须有 `services/test_db.rs::fresh_db()` 集成测试覆盖,纯逻辑单测不算
+   - 文件 / Win32 API 改动:必须有 tempfile + 真实 syscall 集成测试(I.2 crypto.rs DPAPI 同款)
+   - IPC command 暴露给前端:必须 dev panel(`Ctrl+Shift+D`)端到端手测,响应贴到 task 收口报告
+   - 不满足时**停止 commit**,先补测试再回到 Step 0 重新 dry-run
 
 6. **commit**
    - 使用 Conventional Commit:
