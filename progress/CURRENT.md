@@ -18,9 +18,7 @@
 
 ---
 
-## Recently Completed(本 milestone,近 5 笔)
-
-> **m1.md § Completed Log 是历史 commit 流水权威源**(28 笔历史归档)。本表只保留近 5 笔便于扫读,milestone 切换时整段随 m1.md 归档到 `milestone/m1` 分支。
+## Recently Completed(近 5 笔;权威流水 m1.md § Completed Log;规则 CLAUDE.md § progress/ 维护规则)
 
 | Story | Commit | Date |
 |---|---|---|

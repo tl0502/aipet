@@ -37,12 +37,10 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 3. 拆 tasks(每个 ≤ 1 day)
 4. 串行实施每个 task:
    a. 实现代码(Vue/TS/Rust 按模块归属)
-   b. **3 层测试覆盖**(详 CLAUDE.md § 测试覆盖底线 — 单层不算 done):
-      - 纯逻辑单测(必备,函数边界 / 序列化 / 校验)
-      - 真实路径集成测试(touch DB / 文件 / Win32 API 时必备 — DB 走
-        `services/test_db.rs::fresh_db()`;Win32 走 tempfile + 真实 syscall)
-      - dev panel 端到端验证(IPC command 暴露给前端时必备 — `Ctrl+Shift+D`
-        跑真实链路,响应内容贴到 task 收口报告)
+   b. **3 层测试覆盖**(详 [CLAUDE.md § 测试覆盖底线](../../CLAUDE.md);**单层不算 done**):
+      - 纯逻辑单测(必备)
+      - 真实路径集成测试(touch DB / 文件 / Win32 API 时;DB 走 `services/test_db.rs::fresh_db()`)
+      - dev panel 端到端验证(IPC command 暴露给前端时;`Ctrl+Shift+D` 跑真实链路,响应贴收口报告)
    c. typecheck + lint + cargo check + cargo test 通过
    d. 更 progress/CURRENT.md(状态 + next)
    e. **dry-run 报告**(必跑 — 文件清单 / 验证结果 / commit message 草稿 / 风险点)

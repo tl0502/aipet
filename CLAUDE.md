@@ -91,7 +91,7 @@
 
 > **当前实际模式**(2026-05-03 起):第三方 API 网关(`Calcium-Ion/new-api`)在所有 subagent 路径上 nil pointer panic,**4 个 subagent 全部不可用**(Explore / general-purpose / adr-author / doc-aligner / gate-checker / module-implementer 测试均 500 panic)。**所有任务由 main session 直接执行**,SOP 见下方「当前模式:main 直接做的 4 类场景」。网关修好撤本警示,恢复矩阵默认 spawn 协作。
 
-### 任务 → agent(目标模式 — 网关修复后)
+### 任务 → agent(目标模式;当前模式见上 § 警示)
 
 | 任务类型                              | 推荐 agent                         | 触发短语示例                                    |
 | ------------------------------------- | ---------------------------------- | ----------------------------------------------- |
@@ -102,7 +102,7 @@
 | 漏洞扫描(commit / branch / milestone) | `code-reviewer`(via `/code-audit`) | "扫漏洞" / "code review" / "milestone 漏洞检查" |
 | 可观测性巡检(M1 D6+ logger 后)        | `obs-checker`                      | "obs 检查" / "巡检日志" / "logger 覆盖"         |
 
-> **subagent 选用判断**(网关修复后用):任务 ≤ 0.5 day 且 main 已勘察过相关上下文 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent。
+> **subagent 选用判断**(目标模式):任务 ≤ 0.5 day 且 main 已勘察过相关上下文 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent。
 
 ### 当前模式:main 直接做的 6 类场景
 
@@ -142,9 +142,9 @@
 
 > 三层智能触发设计哲学详见 `progress/audit-coverage-2026-05-04.md` § 3 + decisions-log.md 2026-05-04「audit-coverage P0 落地」条目。
 
-## Agent IO 契约(目标协作模式 — 网关修复后)
+## Agent IO 契约(目标协作模式;当前模式见 § Agent 决策矩阵 § 警示)
 
-> ⚠️ 当前阶段不走本节 chain pattern(详 § Agent 决策矩阵 § 当前模式)。本节描述网关修好后的 spawn / 接力规则,作目标模式留存。
+> ⚠️ 当前阶段不走本节 chain pattern(详 § Agent 决策矩阵 § 当前模式)。本节作目标模式留存。
 
 Claude Code subagent **不能 spawn 其他 subagent** — 任何跨角色协作都从 main conversation 接力。
 
