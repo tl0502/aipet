@@ -1,4 +1,4 @@
-use crate::state::AppState;
+use crate::state::{lock_or_recover, AppState};
 use std::thread;
 use std::time::Duration;
 use tauri::{AppHandle, Manager};
@@ -30,8 +30,8 @@ pub fn spawn(app: AppHandle) {
             };
 
             let state = app.state::<AppState>();
-            let is_dragging = *state.is_dragging.lock().unwrap();
-            let hitbox = *state.pet_hitbox.lock().unwrap();
+            let is_dragging = *lock_or_recover(&state.is_dragging);
+            let hitbox = *lock_or_recover(&state.pet_hitbox);
 
             let want_ignore = if is_dragging {
                 false

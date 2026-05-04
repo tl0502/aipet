@@ -119,6 +119,12 @@ pub async fn get_user_nickname<R: Runtime>(
 
 /// 设置 pet_nickname。自动把当前值搬到 pet_nickname_previous(为后续 restore 备份)。
 /// 触发 `nickname.changed` { which: "pet", value: Some(name) }。
+///
+/// 实现走 explicit 两步(SELECT 当前 user_nickname → INSERT/UPDATE 显式 bind),
+/// 避免老实现的子查询路径在 nicknames 行被外部 DELETE 后丢 user_nickname:
+/// `INSERT ... VALUES(..., (SELECT user_nickname FROM nicknames WHERE id = 1), ...)`
+/// 在 INSERT 分支(行不存在)时子查询返回 NULL,user_nickname 永久丢失。
+/// 详 progress/code-review-2026-05-03.md M-3。
 pub async fn set_pet_nickname<R: Runtime>(
     app: &AppHandle<R>,
     name: String,
@@ -126,16 +132,18 @@ pub async fn set_pet_nickname<R: Runtime>(
     let now = Utc::now().to_rfc3339();
     let mut conn = open_conn(app).await?;
 
+    // Step 1:读当前 user_nickname(行不存在则为 None,后续 INSERT 写 NULL — 与 schema 默认一致)
+    let existing_user: Option<(Option<String>,)> =
+        sqlx::query_as("SELECT user_nickname FROM nicknames WHERE id = 1")
+            .fetch_optional(&mut conn)
+            .await?;
+    let user_nickname = existing_user.and_then(|(v,)| v);
+
+    // Step 2:UPSERT 显式 bind 旧 user_nickname,INSERT 分支也不丢失
     sqlx::query(
         r#"
         INSERT INTO nicknames (id, pet_nickname, pet_nickname_previous, user_nickname, updated_at)
-        VALUES (
-            1,
-            ?,
-            (SELECT pet_nickname FROM nicknames WHERE id = 1),
-            (SELECT user_nickname FROM nicknames WHERE id = 1),
-            ?
-        )
+        VALUES (1, ?, NULL, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             pet_nickname_previous = nicknames.pet_nickname,
             pet_nickname = excluded.pet_nickname,
@@ -143,6 +151,7 @@ pub async fn set_pet_nickname<R: Runtime>(
         "#,
     )
     .bind(&name)
+    .bind(&user_nickname)
     .bind(&now)
     .execute(&mut conn)
     .await?;

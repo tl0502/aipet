@@ -7,7 +7,7 @@ import path from 'node:path'
 const projectRoot = fileURLToPath(new URL('.', import.meta.url))
 const host = process.env.TAURI_DEV_HOST
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [vue()],
   root: projectRoot,
   publicDir: path.resolve(projectRoot, 'public'),
@@ -36,10 +36,15 @@ export default defineConfig({
     },
   },
   envPrefix: ['VITE_', 'TAURI_ENV_*'],
+  // production 构建时 strip console.log / debugger,避免 release 二进制污染控制台 + 暴露内部 metric 名
+  // (详 progress/code-review-2026-05-03.md L-7)。dev 期保留 console 用于开发调试。
+  esbuild: {
+    drop: command === 'build' ? ['console', 'debugger'] : [],
+  },
   build: {
     outDir: path.resolve(projectRoot, 'dist'),
     target: ['es2021', 'chrome105'],
     minify: !process.env.TAURI_ENV_DEBUG ? 'esbuild' : false,
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
   },
-})
+}))

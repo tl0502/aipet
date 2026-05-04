@@ -24,14 +24,30 @@ pub enum CryptoError {
 
     #[error("DPAPI unprotect failed: {0}")]
     UnprotectFailed(#[source] windows::core::Error),
+
+    /// 输入超过 DPAPI 单次调用上限(`CRYPT_INTEGER_BLOB.cbData` 是 u32,最大 ~4 GB)。
+    /// 不允许 `len() as u32` 静默截断 — 截断后 DPAPI 看到的字节数与指针长度不一致,
+    /// 越界读取风险。详 progress/code-review-2026-05-03.md M-1。
+    #[error("input too large: {0} bytes exceeds u32::MAX")]
+    InputTooLarge(usize),
+}
+
+/// 把 `usize` 长度安全转 `u32`,超界返 `InputTooLarge` 错误。
+///
+/// 抽出这个 helper 是为了:
+/// 1. 让 `protect` / `unprotect` 顶部入口校验只占一行,可读
+/// 2. 单测能直接覆盖边界(`u32::MAX` / `u32::MAX + 1` / 0)而无需构造非法 slice(避免 UB)
+fn check_input_size(len: usize) -> Result<u32, CryptoError> {
+    u32::try_from(len).map_err(|_| CryptoError::InputTooLarge(len))
 }
 
 /// 用 DPAPI 加密一段数据。返回的 ciphertext 已包含 DPAPI metadata,直接存数据库即可。
 ///
 /// `plaintext` 可为空切片;DPAPI 仍会返回非空 ciphertext(只含 metadata)。
 pub fn protect(plaintext: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    let cb_data = check_input_size(plaintext.len())?;
     let in_blob = CRYPT_INTEGER_BLOB {
-        cbData: plaintext.len() as u32,
+        cbData: cb_data,
         pbData: plaintext.as_ptr() as *mut u8,
     };
     let mut out_blob = CRYPT_INTEGER_BLOB {
@@ -61,8 +77,9 @@ pub fn protect(plaintext: &[u8]) -> Result<Vec<u8>, CryptoError> {
 ///
 /// 失败场景:ciphertext 非 DPAPI 输出 / 跨用户跨机器无法解密 / Windows DPAPI key 损坏。
 pub fn unprotect(ciphertext: &[u8]) -> Result<Vec<u8>, CryptoError> {
+    let cb_data = check_input_size(ciphertext.len())?;
     let in_blob = CRYPT_INTEGER_BLOB {
-        cbData: ciphertext.len() as u32,
+        cbData: cb_data,
         pbData: ciphertext.as_ptr() as *mut u8,
     };
     let mut out_blob = CRYPT_INTEGER_BLOB {
@@ -133,5 +150,32 @@ mod tests {
         let garbage = b"this is not a real DPAPI ciphertext blob, just bytes";
         let result = unprotect(garbage);
         assert!(matches!(result, Err(CryptoError::UnprotectFailed(_))));
+    }
+
+    // ===== M-1 整数截断防御:check_input_size 边界 =====
+
+    #[test]
+    fn check_input_size_accepts_zero() {
+        assert_eq!(check_input_size(0).unwrap(), 0);
+    }
+
+    #[test]
+    fn check_input_size_accepts_u32_max() {
+        // 恰好 u32::MAX 是合法上限,不应报错
+        assert_eq!(check_input_size(u32::MAX as usize).unwrap(), u32::MAX);
+    }
+
+    #[test]
+    fn check_input_size_rejects_over_u32_max() {
+        // 64-bit 平台才能表达 > u32::MAX 的 usize;在 32-bit 平台 usize == u32,
+        // 这条分支不可达,跳过测试避免编译期不一致
+        #[cfg(target_pointer_width = "64")]
+        {
+            let big = u32::MAX as usize + 1;
+            match check_input_size(big) {
+                Err(CryptoError::InputTooLarge(n)) => assert_eq!(n, big),
+                other => panic!("expected InputTooLarge, got {other:?}"),
+            }
+        }
     }
 }

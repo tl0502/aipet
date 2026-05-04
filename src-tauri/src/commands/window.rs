@@ -1,5 +1,5 @@
 use crate::services::window_snap;
-use crate::state::{AppState, Hitbox};
+use crate::state::{lock_or_recover, AppState, Hitbox};
 use tauri::{State, WebviewWindow};
 
 const MAX_HITBOX_ABS: f64 = 1_000_000.0;
@@ -59,7 +59,7 @@ pub fn update_hitbox(
         return Err("invalid hitbox after scaling: out of i32 range".into());
     }
 
-    *state.pet_hitbox.lock().unwrap() = Some(Hitbox {
+    *lock_or_recover(&state.pet_hitbox) = Some(Hitbox {
         x: phys_x as i32,
         y: phys_y as i32,
         w: phys_w as i32,
@@ -71,12 +71,12 @@ pub fn update_hitbox(
 #[tauri::command]
 pub fn start_drag(state: State<'_, AppState>, window: WebviewWindow) -> Result<(), String> {
     window.start_dragging().map_err(|e| e.to_string())?;
-    *state.is_dragging.lock().unwrap() = true;
+    *lock_or_recover(&state.is_dragging) = true;
     Ok(())
 }
 
 #[tauri::command]
 pub fn stop_drag(state: State<'_, AppState>, window: WebviewWindow) -> Result<(), String> {
-    *state.is_dragging.lock().unwrap() = false;
+    *lock_or_recover(&state.is_dragging) = false;
     window_snap::snap_to_edge(&window).map_err(|e| e.to_string())
 }

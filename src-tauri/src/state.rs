@@ -1,4 +1,19 @@
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
+
+/// 容忍 Mutex poison 并继续:任一持锁线程 panic 后,其他线程仍能拿到 inner state(可能是中间状态)。
+///
+/// 为什么需要:
+/// - release 模式下 `panic = "abort"`(Cargo.toml § profile.release),poison 不会发生(进程已终止)
+/// - **debug 模式不 abort**,任一 lock 持有线程 panic 后,所有用 `.unwrap()` 的下游 lock 调用会传播 panic
+/// - 桌宠输入路径(cursor_tracker / window commands)5 处共享 `AppState` Mutex,一处 panic 不应导致全输入死锁
+///
+/// 中间状态风险接受:cursor_tracker 60Hz 重读,即便单帧拿到 poison 前的旧值,下一 tick 即恢复;
+/// hitbox / is_dragging 都是简单 POD,无失效不变量。
+///
+/// 详 progress/code-review-2026-05-03.md M-4。
+pub fn lock_or_recover<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Hitbox {
@@ -116,5 +131,28 @@ mod tests {
         let e = b.expand(5);
         assert_eq!(e.w, i32::MAX);
         assert_eq!(e.h, i32::MAX);
+    }
+
+    // ===== lock_or_recover poison 恢复 =====
+
+    #[test]
+    fn lock_or_recover_after_poison() {
+        use std::sync::Arc;
+        use std::thread;
+
+        let m = Arc::new(Mutex::new(42_i32));
+        let m_clone = Arc::clone(&m);
+
+        // 在另一线程持锁后 panic,把 mutex 标记为 poisoned
+        let _ = thread::spawn(move || {
+            let _guard = m_clone.lock().expect("first lock should succeed");
+            panic!("intentional panic to poison the mutex");
+        })
+        .join();
+
+        // 主线程用 .lock().unwrap() 会 panic,用 lock_or_recover 应能拿到 inner 值
+        assert!(m.is_poisoned(), "mutex 应已 poisoned");
+        let guard = lock_or_recover(&m);
+        assert_eq!(*guard, 42, "lock_or_recover 应返回 poison 前的 inner 值");
     }
 }
