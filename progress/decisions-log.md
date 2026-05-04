@@ -292,7 +292,7 @@
 - **影响**:Cargo.toml(+reqwest +eventsource-stream +futures +async-stream)/ services/{secrets.rs,llm.rs,mod.rs}(new + reg)/ commands/{llm.rs,mod.rs}(new + reg)/ lib.rs(invoke_handler +5)/ src/ipc/dev.ts(COMMAND_REGISTRY 12→17 + TRACKED_EVENTS +2)/ progress/code-review-2026-05-04.md(B.1 staged audit)
 - **关键学习**:① **架构 §6.1 trait 字面 vs 实施 KISS struct 是有意识的偏差**(plan / decisions-log / audit 报告三处记录),不是疏忽;doc-aligner 后续同步是 P1 而不是 P0,实施层稳定后再调 ② **6 preset 中 DeepSeek base_url 与其他 5 个不一致**(ADR-005 字面缺 /v1)— 优雅处置:实施层 normalize 兜底 + preset 表显式加 v1;不必为这点偏差升 ADR ③ **8 维度 audit 触发 2 处自我修复**:`Client::builder().build().unwrap_or_else(Client::new())` 是无效 fallback(两路径同样失败,直接 `Client::new()` 等价);`let _ = llm::PRESETS;` 抑制 hack 是 release build 编译器看不到的死代码,改成显式 type imports
 - **defer 项**:① zeroize api_key drop → M3(defense-in-depth,DPAPI 模型已假设进程内存可信)② AppError::User vs Internal 二分 → M2(跨多 service 重构)③ SecurityGuard 注入 → B.2(ChatService 职责)
-- **Ref**:`(本笔 B.1 commit 待生成)` + plan 文件 `~/.claude/plans/dapper-beaming-quokka.md` + `progress/code-review-2026-05-04.md`
+- **Ref**:`455e005` + plan 文件 `~/.claude/plans/dapper-beaming-quokka.md` + `progress/code-review-2026-05-04.md`
 
 ---
 

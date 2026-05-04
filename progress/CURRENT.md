@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:(本笔 B.1)`99066a8 docs(claude): align CLAUDE.md / decisions-log / audit-coverage / ship-task with P0 reality`(本笔 B.1 LLMProvider 落地是其后第 1 笔)
+- **Last commit**:`455e005 feat(llm): B.1 LLMProvider OpenAI compat streaming + DPAPI + dev e2e`(本笔)
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-04(B.1 LLMProvider 落地 — 6 preset + DPAPI secrets + OpenAI compat streaming + dev e2e + 8 维度 audit Pass + cargo test 31 → 62)
 
@@ -24,7 +24,7 @@
 
 | Story | Commit | Date |
 |---|---|---|
-| **B.1 LLMProvider**(OpenAI 兼容 streaming chat completion + DPAPI 取 key)— `secrets.rs` CRUD + `llm.rs` `OpenAiCompatProvider`(KISS struct 不抽 trait;P1-R1 接 Anthropic 再抽)+ 6 preset(openai/deepseek/moonshot/qwen/ollama/custom)+ SSE 解析纯函数 + base_url normalize + GET /v1/models ping + 5 IPC + dev_llm_test_stream(debug-only e2e)+ Events `dev.llm.token`/`done`;cargo test 31 → 62;8 维度 audit Pass(0 C/0 H/1 修 `Client::new()` fallback + import hack/ M2-M3-B.2 defer 3 项)| (本笔)| 2026-05-04 |
+| **B.1 LLMProvider**(OpenAI 兼容 streaming chat completion + DPAPI 取 key)— `secrets.rs` CRUD + `llm.rs` `OpenAiCompatProvider`(KISS struct 不抽 trait;P1-R1 接 Anthropic 再抽)+ 6 preset(openai/deepseek/moonshot/qwen/ollama/custom)+ SSE 解析纯函数 + base_url normalize + GET /v1/models ping + 5 IPC + dev_llm_test_stream(debug-only e2e)+ Events `dev.llm.token`/`done`;cargo test 31 → 62;8 维度 audit Pass(0 C/0 H/1 修 `Client::new()` fallback + import hack/ M2-M3-B.2 defer 3 项)| `455e005` | 2026-05-04 |
 | **用户主动复审 + 4 处治理同步缺口修补**(post-P0 follow-up audit;9 维度交叉审查 1 Critical + 2 High + 1 Low + 1 Medium 遗留;F1+F2+F3+F4 合并一笔纯 docs) | `99066a8` | 2026-05-04 |
 | **plan §10.1 P0-2 settings.local.json 漂移清理**(精算 21 条:A 桶 17 + B 桶 4;91 → 69 行;.gitignore L54 排除不进 git,本地 hygiene 直接生效) | (本地)| 2026-05-04 |
 | **plan §10.2 P1-3 /milestone-gate 总入口命令**(7 步流程串联 5 SOP + gate-checker 综合;5 个 `--skip-*` + `--gate-only`;补完三层智能触发 L3 闭环) | `66114b5` | 2026-05-04 |
