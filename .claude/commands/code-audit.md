@@ -8,28 +8,22 @@ argument-hint: [revision-range | $staged | $branch | $since-last | --full] [--in
 
 对项目代码做 8 维度纯技术漏洞扫描,基于 git diff 增量推进。**不评判业务逻辑、架构对齐、产品决策、性能预算、测试覆盖率** — 这些维度由 doc-aligner / gate-checker / 用户人工 review 处理。
 
-## 前置上下文
+## Step 0:自取前置上下文
 
-- 当前分支:
-!`git branch --show-current`
+> 不在 frontmatter 跑 `!` 预检(空 stdout / 第三方网关解析在 Windows 中文路径下偶发误报失败)。改由本步用 Bash 工具自取。
 
-- 当前 HEAD:
-!`git rev-parse --short HEAD`
+按顺序执行,把输出留在上下文供后续范围解析使用:
 
-- staged diff stats:
-!`git diff --cached --stat`
+1. `git branch --show-current` → 当前分支
+2. `git rev-parse --short HEAD` → 当前 HEAD
+3. `git diff --cached --stat` → staged diff 统计(空 = 无 staged 改动,正常)
+4. `git status --short` → 工作区状态(空 = working tree 干净,正常)
+5. `git log --oneline -5` → 最近 5 笔 commit
 
-- 工作区状态:
-!`git status --short`
+再读两个文件(可能不存在,失败即跳):
 
-- 最近 commit:
-!`git log --oneline -5`
-
-- progress/.audit-state(可能不存在):
-@progress/.audit-state
-
-- progress/CURRENT.md:
-@progress/CURRENT.md
+- `progress/.audit-state`(JSON,`$since-last` 范围依赖)
+- `progress/CURRENT.md`(当前 milestone / sprint / blockers)
 
 ## 范围解析
 

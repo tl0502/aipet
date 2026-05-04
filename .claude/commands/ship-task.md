@@ -90,10 +90,45 @@ argument-hint: [commit-message]
 
 ## 输出
 
-最终输出 5 行以内:
+最终输出 7 行以内:
 
 1. commit SHA + message
 2. pushed branch + upstream
 3. PR 链接/目标分支
 4. 验证结果摘要
-5. follow-up(如需 rotate secret / 回填 Last commit / 手测 UI)
+5. **下一步检查建议**(基于 commit diff 智能匹配,见下表;不命中则空)
+6. follow-up(如需 rotate secret / 回填 Last commit / 手测 UI)
+
+## 下一步检查建议(commit 后智能匹配)
+
+commit 成功后,看本笔 diff 内容,在「输出」第 5 步给出 **0-3** 条最相关检查建议(优先级高先列,不刷数)。
+
+判断表:
+
+| diff 含 | 建议 | 置信度 |
+|---|---|---|
+| `Cargo.toml` / `package.json` / `*.lock` 新增依赖行 | `/deps-audit`(Rust + Node CVE/license 扫描) | 高 |
+| `Cargo.toml [profile.release]` / `vite.config.ts` build 段 / `tauri.conf.json` | `/release-check`(bundle / smoke / WebView2) | 高 |
+| `src/components/*.vue` / `src/views/*.vue` 改动 ≥ 1 文件 | `/a11y-check <path>` | 中 |
+| `src-tauri/migrations/*.sql` 新增或改动 | `/code-audit --staged` 维度 3 数据完整性 | 高 |
+| 跨 ≥ 3 个 service / Rust 文件 大 commit(> 200 行) | `/code-audit --staged`(8 维度漏洞扫) | 中 |
+| 完成 module-level 收口(`decisions-log.md` 加行 OR `m{N}.md` 整行 ✅) | `/perf-check --baseline` + `/code-audit --staged` | 高(milestone-relevant) |
+| `tracing::` / `log::` / `eprintln!` 改动 ≥ 5 处 | (M1 D6+ ringbuffer logger 落地后)调 `obs-checker` agent | 低(stub) |
+
+**判断规则**:
+- 仅当 diff **明确命中**模式才建议;不命中则第 5 步留空,输出 6 行
+- 最多 3 条,按上表「置信度」先列高的
+- 一行内简述命中原因(如「本笔含 Cargo.toml 新增 ulid / gray_matter 依赖行」)
+- **不重复 PostToolUse hook 已经提醒过的内容** — hook 在文件改动时已提醒,ship-task 这里是 commit 后的 milestone-aware 二次确认,聚焦「这笔 commit 完整性视角」而非「单文件视角」
+
+**输出语气示例**:
+```
+5. 建议下一步:
+   • `/deps-audit`(本笔 Cargo.toml 新增 ulid / gray_matter)
+   • `/perf-check --baseline`(本笔含 m1.md F.1 整行 ✅,模块级收口)
+```
+
+不命中时:
+```
+5. (无下一步检查建议)
+```

@@ -16,6 +16,7 @@ tools: Read, Grep, Glob, Bash, Write
 4. `docs/AIPET-obsidian/需求设计/2026-05-01-ai-desktop-pet-telemetry-uat-v1.0.md` § KPI 11.x 与杀死指标
 5. `progress/m{N}.md` — 本 milestone 的 stories 实际状态
 6. `progress/risks.md` — 本 milestone 风险监控状态
+7. `.claude/commands/ship-task.md` — milestone 切换时审查是否过时(分支引用 / progress 路径 / 验证套件 / 敏感文件清单 / 出口流程)
 
 ## 工作流(只读输入,只生成报告)
 
@@ -36,7 +37,16 @@ tools: Read, Grep, Glob, Bash, Write
    - 本 milestone 时间窗内的风险监控状态
    - 已 triggered 的风险是否已 mitigated
 
-5. 生成 progress/gate-m{N}.md,结构:
+5. 流程文件回归检查(milestone 切换专项,只读对照):
+   扫 `.claude/commands/ship-task.md`,与本 milestone 出口产物对照:
+   - **分支引用**:`milestone/m{N}` 是否需切到 `milestone/m{N+1}`
+   - **progress 路径**:`progress/m{N}.md` 是否需切到 `progress/m{N+1}.md`
+   - **验证套件**:本 milestone 引入的新技术栈是否需进 ship-task(如 M3 接 LLM 后 prompt fixture / M4 装扮资源管线 / M5 灰度 GrowthBook gate)
+   - **敏感文件清单**:本 milestone 引入的新敏感类型是否已纳入(如 M3 LLM API key 密文 / M4 装扮 LFS 大文件)
+   - **出口流程**:本 milestone 是否需接 GitHub Action / claude-code-action
+   发现过时项 → 写入 gate 报告「建议下一步」段(具体行 + 建议新内容);**不自己编辑 ship-task.md**,留给 main 实施场景显式升级
+
+6. 生成 progress/gate-m{N}.md,结构:
    # M{N} 出口检查报告({date})
    ## 必达项
    | 项 | 状态 | 证据 |
@@ -49,8 +59,9 @@ tools: Read, Grep, Glob, Bash, Write
    ## 建议下一步
    - (若达成)合 main 打 tag v0.M{N}.0 + 启动 M{N+1} 入口仪式
    - (若未达成)具体修复任务清单
+   - (若 ship-task.md 需升级)列出过时行 + 建议新内容
 
-6. 提交 PR(注:gate-checker 可写 progress/ 文件,但不写 src/ 与 src-tauri/)
+7. 提交 PR(注:gate-checker 可写 progress/ 文件,但不写 src/ 与 src-tauri/)
 ```
 
 ## 工具范围
@@ -68,4 +79,5 @@ tools: Read, Grep, Glob, Bash, Write
 - [ ] 结论明确:出口达成 / 修复后再检查 / 降级延期
 - [ ] 若出口达成,建议下一步含 tag 名 + M{N+1} 启动动作
 - [ ] 若出口未达成,具体修复任务清单含 owner 建议(留给 main 实施场景 / 网关修复后由 module-implementer)
+- [ ] `.claude/commands/ship-task.md` 已对照本 milestone 引入物回归审查;若需升级,具体建议已写入 gate 报告「建议下一步」
 - [ ] progress/CURRENT.md 已更新本 milestone 状态
