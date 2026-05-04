@@ -17,7 +17,7 @@ export interface CommandMeta {
   name: string
   description: string
   params: CommandParam[]
-  category: 'core' | 'window' | 'nickname' | 'dev'
+  category: 'core' | 'window' | 'nickname' | 'llm' | 'dev'
 }
 
 export const COMMAND_REGISTRY: CommandMeta[] = [
@@ -80,6 +80,49 @@ export const COMMAND_REGISTRY: CommandMeta[] = [
     params: [],
     category: 'nickname',
   },
+  // ===== B.1 LLMProvider(架构 §6 / ADR-005)=====
+  {
+    name: 'llm_list_presets',
+    description: 'B.1 列 6 个 provider preset(openai/deepseek/moonshot/qwen/ollama/custom)',
+    params: [],
+    category: 'llm',
+  },
+  {
+    name: 'secrets_set_api_key',
+    description: 'B.1 写入 provider api_key(DPAPI 加密后入 secrets 表)',
+    params: [
+      { name: 'provider', type: 'string', required: true, description: 'preset id 如 openai' },
+      { name: 'key', type: 'string', required: true, description: '明文 api key,不会回显' },
+    ],
+    category: 'llm',
+  },
+  {
+    name: 'secrets_delete_api_key',
+    description: 'B.1 删除 provider api_key(幂等)',
+    params: [{ name: 'provider', type: 'string', required: true }],
+    category: 'llm',
+  },
+  {
+    name: 'secrets_test',
+    description: 'B.1 探活:GET {base_url}/models;返回 { ok, latency_ms, message }',
+    params: [
+      { name: 'provider', type: 'string', required: true },
+      { name: 'baseUrl', type: 'string', required: true, description: '如 https://api.openai.com/v1' },
+      { name: 'model', type: 'string', required: true, description: '如 gpt-4o-mini(ping 不验模型)' },
+    ],
+    category: 'llm',
+  },
+  {
+    name: 'dev_llm_test_stream',
+    description: 'B.1 debug-only 端到端 streaming;Events tab 看 dev.llm.token 流',
+    params: [
+      { name: 'provider', type: 'string', required: true },
+      { name: 'baseUrl', type: 'string', required: true },
+      { name: 'model', type: 'string', required: true },
+      { name: 'userMessage', type: 'string', required: true, description: '如「你好」' },
+    ],
+    category: 'llm',
+  },
   {
     name: 'dev_list_tables',
     description: 'DEV-1 列 sqlite 数据库内所有非系统表名',
@@ -113,4 +156,7 @@ export const TRACKED_EVENTS: readonly string[] = [
   'tray:show',
   'tray:hide',
   'tray:settings',
+  // B.1 dev_llm_test_stream(debug-only;release build 不会触发,留这里 dev 期监控)
+  'dev.llm.token',
+  'dev.llm.done',
 ] as const

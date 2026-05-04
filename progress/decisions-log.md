@@ -170,6 +170,83 @@
 - **依据**:Anthropic 2026 subagent spec — Tool Restriction Best Practices / Hooks 文档 / Slash Commands 文档
 - **Ref**:`6c67da2`(笔 1) / `e89d660`(笔 2) / `42fce14`(笔 3) / `87134da`(笔 4)
 
+### 2026-05-02 | vibecoding v2 hook ESM 冲突修复
+
+- **决策**:`.claude/hooks/protect-archive-and-adrs.js` 重命名为 `.cjs`,绕开 `package.json: "type":"module"` 的强制 ESM 解析
+- **理由**:hook 脚本用 CJS 语法(`fs.readFileSync(0)` stdin 读法)与 ESM 不兼容;改后缀让 Node 强制 CJS 加载即可,零代码改;比改写为 ESM 风险低(stdin 流式读法 ESM 异步语义更复杂)
+- **影响**:6 项 stdin 用例验证全部通过 deny / 放行预期(写 `_archive/` deny / 写 ADR-001~014 deny / 写新 ADR-015+ 放行 / 读旁路放行 / 无 stdin 放行 / 解析失败放行);后续 `suggest-checks.cjs` 沿用 `.cjs` 范式
+- **Ref**:vibecoding v2 升级 4 笔 commit 之内的修复
+
+### 2026-05-02 | .gitignore 收口 + Obsidian local-rest-api 泄露口堵漏
+
+- **决策**:`.gitignore` 重写为 13 类分组(VRM 二进制 / vitest coverage / Vite 缓存 / Obsidian 整目录 / SQLite 运行时 / Bundle / 编辑器临时 / OS 杂项 等);`docs/AIPET-obsidian/.obsidian/` 整目录加 ignore 并 `git rm --cached` 已追踪文件
+- **理由**:`obsidian-local-rest-api` 插件配置含 API key + TLS 私钥被 git 追踪暴露;按目录 ignore + rm cached 一次性堵口;13 类分组 vs 平铺 list 可读性强,后续新增类目易归入
+- **影响**:堵住 API key + 私钥泄露入仓库口;⚠️ Follow-up:用户需在 Obsidian 端 rotate API key(旧 key 已永久存在 git 历史,但仓库未公开,实际风险有限);后续 vitest coverage / SQLite 运行时文件不再误提
+- **Ref**:vibecoding v2 升级期间的 hygiene 收口(同期 commit)
+
+### 2026-05-03 | /ship-task 固化 Git 收口流程
+
+- **决策**:新增 `/ship-task` slash command 固化"完成 1 task 标准收口"流程 — 检查敏感文件 / progress 同步 / 验证(typecheck/lint/cargo check)/ atomic commit / push 当前 `feat/*` 到 `origin`;CLAUDE.md § 提交规范 同步明确"远程最新进度先看 feature branch,不是 main"
+- **理由**:此前每笔 task 完工要手动跑 5-7 步,易漏 push 导致本地与远程不同步;ship-task 一键收口 + 7 步顺序固化,减少 cognitive load;后续 audit-coverage P0 期在此基础上加"commit 后智能建议 7 类"
+- **影响**:M1 D3 起每笔 task 完工调 `/ship-task`;远程进度 first-class 可信(再无"本地有,远程没"窘境)
+- **Ref**:`.claude/commands/ship-task.md` 新增
+
+### 2026-05-03 | module-implementer agent frontmatter 修复 + subagent 选用判断
+
+- **决策**:`module-implementer` agent frontmatter 缺 `tools` 字段(对比 adr-author / doc-aligner / gate-checker 均有)未注册,补 `tools: Read, Write, Edit, Glob, Grep, Bash` 修复;CLAUDE.md § Agent 决策矩阵 下方加 **subagent 选用判断准则**
+- **理由**:Claude Code 2026 spec 要求 subagent 必须显式声明 tools,否则不可用;判断准则(任务 ≤ 0.5d + main 已勘察 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent)解决"冷启动重读启动协议 vs main 已有上下文"性价比矛盾
+- **影响**:vibecoding v2 的 4 个 agent 全部可用(注:此条修复后稍后 2026-05-03 测试发现网关 panic,见次条决议改为 main 直接做)
+- **Ref**:`.claude/agents/module-implementer.md` frontmatter 补全
+
+### 2026-05-03 | subagent 网关 panic + 决议 main 直接做
+
+- **决策**:测试 Explore / general-purpose / module-implementer / adr-author / doc-aligner / gate-checker 共 6 个 subagent 路径,**全部** 在第三方 API 网关(`Calcium-Ion/new-api`)上 nil pointer panic(显式 `model: opus` 也 500;不指定走默认模型则 400 "1m 上下文已经全量可用");判定为网关 bug 而非 Claude Code 设计问题。**当前阶段所有任务由 main session 直接执行**;CLAUDE.md 决策矩阵章节顶部加 ⚠️ 状态标注 + 末尾加「main 直接做的 4 类场景实操指引」(实施 / 决策起草 / 文档同步 / 出口检查)
+- **理由**:网关上游限制无解,等修复恢复 spawn 模式;4 个 agent .md 当 SOP 参考而非 spawn 目标 — 信息不浪费,流程不阻塞;CLAUDE.md 双轨表达(当前模式 + 目标模式)便于网关修好后撤本节
+- **影响**:M1 W1 D3 起所有任务 main 直接做(实施 / ADR 起草 / 文档同步 / 出口检查);网关修好后撤本节,恢复 subagent 协作模式
+- **Ref**:CLAUDE.md § Agent 决策矩阵 ⚠️ 状态段;`.claude/agents/*.md` 不动作 SOP 参考
+
+### 2026-05-03 | I.2 CryptoService 落地(DPAPI 包装)
+
+- **决策**:`src-tauri/src/services/crypto.rs` 用 windows 0.61 crate 直调 `CryptProtectData` / `CryptUnprotectData`,标志位 `CRYPTOPROTECT_UI_FORBIDDEN` 防止 DPAPI 弹 UI;`CryptoError` 用 thiserror 包裹 `windows::core::Error` 与现有 `AppError` 风格一致
+- **理由**:**隐私边界 #4 硬要求** — DPAPI 弹 UI 会暴露用户在场感,违反"桌宠在用户主动唤起前不打扰"原则;windows crate 0.61 直调比 winapi 0.3 更现代;thiserror 风格统一便于 AppError 自动 From 转换
+- **影响**:Cargo.toml 加 `Win32_Security_Cryptography` feature;4 单测全过(round-trip / empty / binary safety / invalid ciphertext);`protect`/`unprotect` 当前 dead_code 警告将在 B.1 LLMProvider 接入后自然消除
+- **Ref**:M1 W1 D3 实施(具体 SHA 见 git log feat/m1-d2-window-interaction 分支)
+
+### 2026-05-03 | H.1 PersonaService MVP 落地
+
+- **决策**:① 内置 momo 走 `include_str!` 编译进 binary(与 migrations/001_init.sql 同款),路径 `src-tauri/personas/_builtin/momo.soul.md`;② `gray_matter`(yaml feature)解析 frontmatter,`parse_persona(&str)` 设计为纯字符串入参不耦合 IO;③ `personas` 走 `ON CONFLICT(id) DO UPDATE`,`persona_snapshots` 走 `(persona_id, version)` 唯一性守卫避免堆行
+- **理由**:① M0 ADR-009 漏交付的 deliverable 顺手补完;② parse 层与 IO 解耦,H.2 用户导入 / H.3 远程下载直接复用;③ 关键风险触发 — `tauri-plugin-sql 2.4` 的 `DbPool::sqlite()` 公共方法被注释掉(wrapper.rs 行 37-64),Rust 端无法借 plugin Pool;按 plan 降级路径自开 `sqlx 0.8`(版本与 plugin 一致)短期连接,DB 路径用 `app.path().app_config_dir()` 与 plugin 一致
+- **影响**:6 单测覆盖 parse 成功 / 坏 YAML / 缺 id / 未知 schema / schema v1 兼容 / frontmatter 切除;lib.rs setup 用 `tauri::async_runtime::spawn` 异步 seed,失败仅 eprintln 不阻塞启动
+- **Ref**:M1 W1 D3 实施
+
+### 2026-05-03 | F.1 MemoryService MVP + 设计偏离 90 天清理
+
+- **决策**:① `services/memory.rs` 实现 messages 表 CRUD(insert/list/delete_by_id/delete_by_conversation)+ ULID 主键(`ulid` crate 1.x)+ summary 占位字符串 + `cleanup_messages_older_than(days)` 私有 stub;② **关键设计偏离**:m1.md F.1 字面"90 天清理"与 PRD §73 / 架构 §549 措辞,经讨论后认定**偏离 local-first 精神**(数据已在用户本地,自动清空对话剥夺老朋友价值);改为**默认无限保留 + 用户主动清理**(类似 ChatGPT 网页);③ `cleanup_messages_older_than` 留 stub 不在 setup 调用,留给将来设置面板"X 天自动清理"开关触发;④ B.2 ChatService 拼 system prompt 时 context 爆炸问题改用**摘要压缩**(F.1 summary 占位是伏笔)而非删消息
+- **理由**:local-first 原则(关键约束 #1)优先级高于 PRD/架构具体措辞;F.1 是数据层基石,设计偏离需即刻拍板而非积压;摘要压缩对老朋友体验更好(对话连续性保留)
+- **影响**:6 单测覆盖纯逻辑(ULID/RFC3339 生成、role/mode 校验、cutoff 计算、placeholder 自识别);PRD §73 + 架构 §549 措辞偏差留给后续 doc-aligner SOP 同步;DB 测试推到后续 milestone(架构有 testcontainer 设计)
+- **Ref**:M1 W1 D3 实施
+
+### 2026-05-03 | 用户产品方向扩展(OpenClaw 文件操作能力)
+
+- **决策**:用户明确提出"AI 桌宠的文件操作能力也是有必要的,类似 OpenClaw"(陪伴 + 工具能力的双轨定位);本次不偏题,F.2 / B.1 落地后做 research(MCP / 文件读写权限模型 / 安全护栏与文件操作的边界)+ 起草 ADR(候选编号 ADR-016 桌宠工具能力)
+- **理由**:陪伴 60% + 效率 40%(memory project_aipet_positioning)中"效率"维度此前定位偏窄(仅"对话回答问题"),OpenClaw 这条线打开"AI 主动操作用户文件"想象空间;但工具能力 = 引入 MCP / 文件 IO 权限,涉及隐私边界 #4 + 安全护栏 #5,需正式 ADR 拍板,不能临时决定
+- **影响**:M1 W1 D3 用户原话备案,M1 末或 M2 启动 ADR-016 research(具体编号视 ADR 进度);本次不影响 F.2 / B.1 当前实施
+- **Ref**:用户对话备案(无 commit)
+
+### 2026-05-03 | 6 笔本地 commit push 到 origin(SSH→HTTPS 切换)
+
+- **决策**:远程 SSH 22 在大陆 connection reset,SSH 443 也超时,改用 HTTPS push 一次性同步(`b534877..147eed6`);git credential helper 已 cache PAT,后续 push 无需重新认证
+- **理由**:SSH 在大陆部分网络持续不稳,HTTPS + PAT cache 是稳定可重复的备用通道;CLAUDE.md / `/ship-task` 流程未变(只动 remote URL),未来 push 走 HTTPS remote 自动生效
+- **影响**:`feat/m1-d2-window-interaction` 分支 6 笔本地 commit 全部上 origin;后续 push 无需 SSH 配置;origin URL 改 HTTPS 形态留本地配置(不进 git)
+- **Ref**:`b534877..147eed6` 6 笔 commit
+
+### 2026-05-03 | git proxy 配 127.0.0.1:10808
+
+- **决策**:`git config --global http.proxy + https.proxy` 配 127.0.0.1:10808(Windows 系统代理常见 V2RayN/Clash HTTP 端口),让 git CLI 继承系统代理走 GitHub
+- **理由**:浏览器走该代理能访问 GitHub 但 git CLI 没继承系统代理(Windows 默认行为);配上 git http(s).proxy 后 HTTPS push 顺畅
+- **影响**:VPN 关闭时端口未监听 push 会卡(connection refused),需要时 `git config --global --unset http.proxy` 切回直连;长期 SOP:用户切代理时同步 git config(写入个人 setup checklist,不进 repo)
+- **Ref**:个人 git 全局配置变更(不进 repo)
+
 ### 2026-05-04 | audit-coverage P0 落地 + plan §10 P1-3/P0-2
 
 - **决策**:用户 2026-05-04 问"项目检查除纯代码漏洞还需要什么",引出 10 类盘点 C1-C10(✅ 2/10 + 🟡 3/10 + ❌ 5/10 缺位:C4 性能 / C6 依赖 / C7 构建 / C8 obs / C9 a11y);本期 P0 落地 5 份新 SOP + PostToolUse hook + ship-task 智能建议 + milestone-gate 总入口 + settings.local.json 漂移清理
@@ -194,6 +271,28 @@
   5. **本次合作模式**:用户先于研究做了 in-flight 工作,我帮收口 commit + 补 P1-3 + P0-2;事后用户主动让我"再检查一遍"才发现 CLAUDE.md / decisions-log / audit-coverage §5 三处治理同步缺口 — **整改后必须主动跑治理同步检查**,不能等用户问
 - **不做**:① subagent 网关诊断(上游 Calcium-Ion/new-api 高并发限制无解)② 引入新 npm 依赖给 hook(项目硬约束最小依赖)③ ADR-016 vibecoding harness 体检(常规治理无需 ADR 形式)④ Co-Authored-By 签名补回(本次 6 笔 commit 已 push,history rewrite 风险高,后续 commit 注意)
 - **Ref**:`91dca81` → `eb764d6` → `cefc411` → `bed8442` → `66114b5` → `38dc2b7` + `progress/audit-coverage-2026-05-04.md`(231 行)+ plan 文件 `~/.claude/plans/claude-vibecoding-claude-session-fluttering-anchor.md`(541 行,个人备忘)
+
+### 2026-05-03 | Claude 流程文件深度巡检减冗(从 CURRENT 挤出归档)
+
+- **决策**:CLAUDE.md 137→130 行减冗;5 处"完成 task 必更 progress + atomic commit + push"重复收口到 § 提交规范唯一权威源,其他 4 处改"详 § 提交规范";启动协议第 3 步措辞中性化(「按场景」替代「被指派」);§ Agent 决策矩阵 / § subagent 选用判断 / § 4 类场景 / § IO 契约 4 段重组为 2 段(当前模式优先 + 目标模式备查);adr-author / gate-checker / module-implementer 3 份 agent .md 同步成"main 直接做 / 网关修复后由 module-implementer";hook 注释 "由 adr-author 角色起草" → 「决策起草」SOP 中性表述
+- **理由**:重复信息密度低 + 网关 panic 期 4 个 subagent 不可用 → 文档应优先反映「main 直接做」当前模式而非目标模式;每条信息 ≤ 1 处权威源,新 session 一打开就能定位「当前 subagent 不可用,main 直接做」
+- **影响**:CLAUDE.md(主)+ adr-author.md / gate-checker.md / module-implementer.md / hook 注释
+- **Ref**:见 CURRENT.md prior 同步(2026-05-04 已经过)
+
+### 2026-05-04 | B.1 LLMProvider 落地
+
+- **决策**:OpenAI 兼容 streaming chat completion + DPAPI 取 key,~1 day 实施完成
+  - **架构层**:KISS struct 直暴 — `OpenAiCompatProvider` 单 struct,**不**抽 `trait LLMProvider`(架构 §6.1 字面有偏差);P1-R1 接 Anthropic 时再抽。doc-aligner 后续同步架构 §6.1 措辞
+  - **secrets.rs 双 service**:`set` / `get` / `delete` 调 crypto::protect/unprotect 包装;UPSERT `ON CONFLICT(key) DO UPDATE`(沿用 H.1 / F.2 同款);key 命名 `{provider_id}.api_key`,7 单测覆盖 6 preset 命名 + 不冲突
+  - **llm.rs 主体**:6 preset 静态数组(**与 ADR-005 字面差异:DeepSeek base_url 加 /v1 与其他 5 preset 对齐**;doc-aligner 后续同步 ADR-005)+ `parse_sse_payload` 纯函数(serde_json + `#[serde(default)]` 容忍 ollama / partial schema)+ `normalize_base_url` 幂等(去尾 / + 补 v1)+ `OpenAiCompatProvider::{new, from_secrets, chat_stream, ping}` + `ChatChunk::{Token, Done}` + `LlmError` 9 variant + 状态码映射 401→Unauthorized / 429→RateLimited / 5xx→Server(body 截 200 chars 防泄露)
+  - **secrets.test 探活**:GET `/v1/models` — 零 token 消耗 + 无 cold start + 6 preset 全兼容(用户在 3 选项中拍板)
+  - **dev_llm_test_stream**:debug-only e2e 验证(`#[cfg(debug_assertions)]` + lib.rs invoke_handler 双重排除 release);emit `dev.llm.token` / `dev.llm.done` 流到 dev panel Events tab(用户在 3 选项中拍板)
+  - **不在范围**:ChatService prompt 拼装(B.2)、SecurityGuard 注入(B.2)、Anthropic / Gemini(P1-R1/R2)
+- **理由**:① 抽象代价应由第二个具体类型支付,trait 在单 provider 时是命名空间无 dispatch 价值 ② GET /v1/models 是 OpenAI 标准探活端点,Ollama / DeepSeek / Moonshot / Qwen 全实现;chat completion ping 浪费 token + Ollama 触发 cold start ③ 不引 async-trait crate(KISS,deps 减 1 个 transitive 树)
+- **影响**:Cargo.toml(+reqwest +eventsource-stream +futures +async-stream)/ services/{secrets.rs,llm.rs,mod.rs}(new + reg)/ commands/{llm.rs,mod.rs}(new + reg)/ lib.rs(invoke_handler +5)/ src/ipc/dev.ts(COMMAND_REGISTRY 12→17 + TRACKED_EVENTS +2)/ progress/code-review-2026-05-04.md(B.1 staged audit)
+- **关键学习**:① **架构 §6.1 trait 字面 vs 实施 KISS struct 是有意识的偏差**(plan / decisions-log / audit 报告三处记录),不是疏忽;doc-aligner 后续同步是 P1 而不是 P0,实施层稳定后再调 ② **6 preset 中 DeepSeek base_url 与其他 5 个不一致**(ADR-005 字面缺 /v1)— 优雅处置:实施层 normalize 兜底 + preset 表显式加 v1;不必为这点偏差升 ADR ③ **8 维度 audit 触发 2 处自我修复**:`Client::builder().build().unwrap_or_else(Client::new())` 是无效 fallback(两路径同样失败,直接 `Client::new()` 等价);`let _ = llm::PRESETS;` 抑制 hack 是 release build 编译器看不到的死代码,改成显式 type imports
+- **defer 项**:① zeroize api_key drop → M3(defense-in-depth,DPAPI 模型已假设进程内存可信)② AppError::User vs Internal 二分 → M2(跨多 service 重构)③ SecurityGuard 注入 → B.2(ChatService 职责)
+- **Ref**:`(本笔 B.1 commit 待生成)` + plan 文件 `~/.claude/plans/dapper-beaming-quokka.md` + `progress/code-review-2026-05-04.md`
 
 ---
 
