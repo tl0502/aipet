@@ -20,7 +20,6 @@ use chrono::Utc;
 use serde::Serialize;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::{ConnectOptions, Connection, SqliteConnection};
-use std::str::FromStr;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 use thiserror::Error;
 
@@ -59,8 +58,9 @@ async fn open_conn<R: Runtime>(app: &AppHandle<R>) -> Result<SqliteConnection, N
         .app_config_dir()
         .map_err(|e| NicknameError::AppConfigDir(e.to_string()))?;
     let db_path = app_config.join("aipet.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-    Ok(SqliteConnectOptions::from_str(&db_url)?
+    // builder API 避开 URL parsing(Windows 绝对路径反斜杠会让 from_str 报 code 14)
+    Ok(SqliteConnectOptions::new()
+        .filename(&db_path)
         .create_if_missing(false)
         .connect()
         .await?)

@@ -22,7 +22,6 @@ use gray_matter::Matter;
 use serde::Deserialize;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::{ConnectOptions, Connection, Transaction};
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 use thiserror::Error;
 
@@ -127,9 +126,10 @@ pub async fn seed_builtin<R: Runtime>(app: &AppHandle<R>) -> Result<(), PersonaE
         .app_config_dir()
         .map_err(|e| PersonaError::AppConfigDir(e.to_string()))?;
     let db_path = app_config.join("aipet.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-
-    let mut conn = SqliteConnectOptions::from_str(&db_url)?
+    // 用 builder API 避开 URL parsing — Windows 绝对路径反斜杠会让
+    // `SqliteConnectOptions::from_str("sqlite:C:\...")` 报 SQLITE_CANTOPEN(code 14)
+    let mut conn = SqliteConnectOptions::new()
+        .filename(&db_path)
         .create_if_missing(false) // plugin 已建,不重复
         .connect()
         .await?;

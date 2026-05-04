@@ -16,7 +16,6 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::{ConnectOptions, Connection, FromRow, SqliteConnection};
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 use thiserror::Error;
 use ulid::Ulid;
@@ -90,8 +89,9 @@ async fn open_conn<R: Runtime>(app: &AppHandle<R>) -> Result<SqliteConnection, M
         .app_config_dir()
         .map_err(|e| MemoryError::AppConfigDir(e.to_string()))?;
     let db_path = app_config.join("aipet.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-    Ok(SqliteConnectOptions::from_str(&db_url)?
+    // builder API 避开 URL parsing(Windows 绝对路径反斜杠会让 from_str 报 code 14)
+    Ok(SqliteConnectOptions::new()
+        .filename(&db_path)
         .create_if_missing(false)
         .connect()
         .await?)

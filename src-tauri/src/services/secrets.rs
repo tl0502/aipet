@@ -23,7 +23,6 @@
 use chrono::Utc;
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::{ConnectOptions, Connection, SqliteConnection};
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 use thiserror::Error;
 
@@ -61,8 +60,11 @@ async fn open_conn<R: Runtime>(app: &AppHandle<R>) -> Result<SqliteConnection, S
         .app_config_dir()
         .map_err(|e| SecretsError::AppConfigDir(e.to_string()))?;
     let db_path = app_config.join("aipet.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-    Ok(SqliteConnectOptions::from_str(&db_url)?
+    // 用 builder API 避开 URL parsing — Windows 绝对路径 `sqlite:C:\...` 反斜杠会让
+    // SqliteConnectOptions::from_str 报 SQLITE_CANTOPEN(code 14)。filename(&PathBuf) 路径
+    // 直接传给底层 sqlite3_open_v2,绕开 URL 协议解析。
+    Ok(SqliteConnectOptions::new()
+        .filename(&db_path)
         .create_if_missing(false)
         .connect()
         .await?)
