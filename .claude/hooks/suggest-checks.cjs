@@ -2,7 +2,8 @@
 // PostToolUse hook:Edit / Write / MultiEdit 后,根据文件路径建议跑哪些检查
 // advisory only — 不拦工具调用,仅在 Claude 上下文注入「下一步可考虑」提示
 // 详见 progress/audit-coverage-2026-05-04.md § 三层智能触发(L1 hook)
-// 4 个高质量触发点:依赖/构建 / Vue 组件 / 构建发布配置 / DB schema 迁移
+// 6 个高质量触发点:依赖/构建 / Vue 组件 / 构建发布配置 / DB schema 迁移 /
+//                  services sqlx 调用 / commands 新 IPC
 
 const fs = require('fs');
 
@@ -61,6 +62,53 @@ if (/(^|\/)src-tauri\/migrations\/.+\.sql$/.test(p)) {
     '  • `ON CONFLICT(cols)` 必须配 cols 的 UNIQUE 约束才生效(SQLite 静默失效坑)\n' +
     '  • 每条 DDL 必须 `IF NOT EXISTS` 或 schema 检查包裹,可重跑'
   );
+}
+
+// 触发 5:services/*.rs 含 sqlx 调用 → 测试覆盖底线 fresh_db 集成测试提示
+//
+// CLAUDE.md § 测试覆盖底线 强约束:DB-touching 改动必须有真实路径集成测试,
+// 纯逻辑单测不算 done。M1 W1 D3 SQLITE_CANTOPEN 双重 bug 潜伏 6 commit 的
+// 教训(7 services / 62 单测全是纯逻辑)→ hook 提前在文件改动期就提醒,
+// 不等 ship-task Step 5 才发现没补集成测试。
+if (/(^|\/)src-tauri\/src\/services\/.+\.rs$/.test(p)) {
+  let hasSqlx = false;
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    hasSqlx = /\bsqlx::/.test(content);
+  } catch (e) {
+    // 文件读不到(被删了 / 路径错)就跳过本提示
+  }
+  if (hasSqlx) {
+    suggestions.push(
+      'services/ 含 sqlx 调用 → CLAUDE.md § 测试覆盖底线 强约束:\n' +
+      '  • 必须有 `services/test_db.rs::fresh_db()` 集成测试覆盖,纯逻辑单测不算\n' +
+      '  • 参考 secrets / nickname / memory / persona 已落地的 22 集成测试\n' +
+      '  • [HIGH] sqlx 默认开 PRAGMA foreign_keys=ON,跨表 INSERT 前确保 FK 父行存在'
+    );
+  }
+}
+
+// 触发 6:commands/*.rs 含 #[tauri::command] → dev panel e2e 提示
+//
+// CLAUDE.md § 测试覆盖底线 强约束:IPC command 暴露给前端时必须 dev panel
+// 端到端手测,响应内容贴到 task 收口报告。覆盖纯 cargo test 测不到的真实
+// AppHandle / capabilities / 前端调用链路。
+if (/(^|\/)src-tauri\/src\/commands\/.+\.rs$/.test(p)) {
+  let hasTauriCmd = false;
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    hasTauriCmd = /#\[tauri::command\]/.test(content);
+  } catch (e) {
+    // 同上
+  }
+  if (hasTauriCmd) {
+    suggestions.push(
+      'commands/ 含 #[tauri::command] → CLAUDE.md § 测试覆盖底线 强约束:\n' +
+      '  • IPC 暴露前端必须 dev panel(`Ctrl+Shift+D`)端到端手测一遍真实链路\n' +
+      '  • 响应内容(成功 / 异常)贴到 task 收口报告\n' +
+      '  • 新增命令记得在 `lib.rs invoke_handler!` 注册 + `src/dev/IpcPlayground` 加 metadata'
+    );
+  }
 }
 
 if (suggestions.length === 0) process.exit(0);
