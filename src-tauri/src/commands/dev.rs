@@ -15,16 +15,41 @@
 use serde_json::{json, Value};
 use sqlx::sqlite::SqliteConnectOptions;
 use sqlx::{ConnectOptions, Connection, Row, SqliteConnection};
-use std::str::FromStr;
 use tauri::{AppHandle, Manager, Runtime};
 
 const DEFAULT_LIMIT: u32 = 100;
+// schema 全表白名单 — debug 期开发者需要查所有表诊断。
+// 安全考量:row_to_json 把 BLOB 渲染为 `<BLOB N bytes>` 不暴露内容(参见本文件下方),
+// LIMIT 500 cap 防止 dev panel UI 渲染巨型表;`secrets` 列表只暴露元数据(key 名 + ciphertext 长度),
+// 不影响 DPAPI 加密对 api_key 明文的保护(明文要走 secrets::get → unprotect 才能拿到)。
 const ALLOWED_TABLES: &[&str] = &[
-    "personas",
+    "accessories_inventory",
+    "config",
+    "consent",
+    "conversations",
+    "diary_drafts",
+    "error_logs",
+    "game_session_events",
+    "game_sessions",
+    "memory",
     "messages",
+    "milestones",
     "nicknames",
     "persona_snapshots",
-    "conversations",
+    "personas",
+    "pet_runtime_state",
+    "pomodoro_sessions",
+    "proactive_care_log",
+    "reminder_history",
+    "reminders",
+    "schema_version",
+    "secrets",
+    "telemetry_queue",
+    "todos",
+    "user_anniversaries",
+    "voice_packs",
+    "voice_settings",
+    "wardrobe_decisions",
 ];
 
 async fn open_conn<R: Runtime>(app: &AppHandle<R>) -> Result<SqliteConnection, String> {
@@ -33,9 +58,10 @@ async fn open_conn<R: Runtime>(app: &AppHandle<R>) -> Result<SqliteConnection, S
         .app_config_dir()
         .map_err(|e| format!("config dir: {e}"))?;
     let db_path = app_config.join("aipet.db");
-    let db_url = format!("sqlite:{}", db_path.display());
-    SqliteConnectOptions::from_str(&db_url)
-        .map_err(|e| format!("sqlite options: {e}"))?
+    // builder API 避开 URL parsing — Windows 绝对路径反斜杠会让
+    // SqliteConnectOptions::from_str("sqlite:C:\...") 报 SQLITE_CANTOPEN(code 14)
+    SqliteConnectOptions::new()
+        .filename(&db_path)
         .create_if_missing(false)
         .connect()
         .await
