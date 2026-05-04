@@ -226,6 +226,13 @@
 - **影响**:6 单测覆盖纯逻辑(ULID/RFC3339 生成、role/mode 校验、cutoff 计算、placeholder 自识别);PRD §73 + 架构 §549 措辞偏差留给后续 doc-aligner SOP 同步;DB 测试推到后续 milestone(架构有 testcontainer 设计)
 - **Ref**:M1 W1 D3 实施
 
+### 2026-05-03 | F.2 NicknameService facade(补 sink 自 CURRENT)
+
+- **决策**:`services/nickname.rs` 单行 `nicknames` 表 facade(取代 m1.md 字面 user_state.xxx)+ 5 services(get_pet/get_user/set_pet/set_user/restore_pet)+ 5 IPC commands + `nickname.changed` event(架构 §711 payload `{ which: 'pet'|'user', value }`);**不引入 memory KV 表**(架构 §249 那是另一面),直接用 nicknames 表精确少一层间接
+- **理由**:① 单行 + id=1 CHECK schema 足够 MVP,KV 表是过度抽象 ② `restore_pet` 用原子 swap(current ↔ previous),用户可来回切两个曾用名,UX 最直观 ③ `get_pet` 三级 fallback `nicknames.pet_nickname → active persona.name → "默默"` 兜底;`get_user` 无 fallback 留 None 给调用方
+- **影响**:`set_pet` UPSERT 改 explicit 两步(SELECT user_nickname → INSERT/UPDATE 显式 bind)避免子查询路径在行被外部 DELETE 后丢 user_nickname(详 code-review-2026-05-03 M-3);4 单测覆盖 event payload 序列化 + 兜底常量
+- **Ref**:M1 W1 D3 实施;commit `7e3b2a8` 周期(本条目从 CURRENT.md L66 简版补 sink)
+
 ### 2026-05-03 | 用户产品方向扩展(OpenClaw 文件操作能力)
 
 - **决策**:用户明确提出"AI 桌宠的文件操作能力也是有必要的,类似 OpenClaw"(陪伴 + 工具能力的双轨定位);本次不偏题,F.2 / B.1 落地后做 research(MCP / 文件读写权限模型 / 安全护栏与文件操作的边界)+ 起草 ADR(候选编号 ADR-016 桌宠工具能力)
@@ -293,6 +300,16 @@
 - **关键学习**:① **架构 §6.1 trait 字面 vs 实施 KISS struct 是有意识的偏差**(plan / decisions-log / audit 报告三处记录),不是疏忽;doc-aligner 后续同步是 P1 而不是 P0,实施层稳定后再调 ② **6 preset 中 DeepSeek base_url 与其他 5 个不一致**(ADR-005 字面缺 /v1)— 优雅处置:实施层 normalize 兜底 + preset 表显式加 v1;不必为这点偏差升 ADR ③ **8 维度 audit 触发 2 处自我修复**:`Client::builder().build().unwrap_or_else(Client::new())` 是无效 fallback(两路径同样失败,直接 `Client::new()` 等价);`let _ = llm::PRESETS;` 抑制 hack 是 release build 编译器看不到的死代码,改成显式 type imports
 - **defer 项**:① zeroize api_key drop → M3(defense-in-depth,DPAPI 模型已假设进程内存可信)② AppError::User vs Internal 二分 → M2(跨多 service 重构)③ SecurityGuard 注入 → B.2(ChatService 职责)
 - **Ref**:`455e005` + plan 文件 `~/.claude/plans/dapper-beaming-quokka.md` + `progress/code-review-2026-05-04.md`
+
+### 2026-05-04 | DB 集成测试缺位补齐
+
+- **决策**:M1 W1 D3 末补 22 个真实 DB 集成测试(secrets 3 + nickname 6 + memory 8 + persona 5)+ 3 个 fixture self-test;采用 **tempfile + 手卷 migrations** 方案,**不**引 sqlx::test 宏 / tauri::test::mock;每个 DB-touching service 抽 `pub(crate) async fn xxx_with_conn(conn: &mut SqliteConnection, ...)` inner helper(行为等价 refactor),外层 `<R: Runtime>` 函数 thin-wrap;cargo test 62 → 87 全过
+- **理由**:① B.1 LLMProvider 实施时双重 hotfix(Win 反斜杠 URL parsing + plugin preload 缺失)暴露 7 services / 62 单测全是纯逻辑,DB 写入路径在 M1 W1 完整周期一次都没真跑过 ② sqlx::test 宏 SQLite 路径需 sqlite_test_runner 配置,成本 > 手卷 fresh_db ③ tauri::test::mock_app 仍需 path resolver 配置 + Tauri runtime 子集,纯 unit 测试 ROI 低 ④ inner helper 是最小侵入式 refactor for testability,prod 路径完全等价(open_conn → inner → close_conn → emit_event),不需重构成 SqlitePool
+- **暴露的 prod 隐患**:[HIGH] sqlx 默认 `PRAGMA foreign_keys=ON`(与 SQLite 自身默认 OFF 不同),`messages.conversation_id REFERENCES conversations(id)` 强制 B.2 ChatService 在 `insert_message` 之前必须 ensure conversation 存在;新增的 `insert_message_rejects_unknown_conversation_id` 测试守住此契约
+- **影响**:Cargo.toml(+ dev-dependencies tempfile + tokio macros/rt)/ services/mod.rs(+ `#[cfg(test)] pub mod test_db`)/ services/test_db.rs(新建,fresh_db fixture + 3 self-test)/ services/{secrets,nickname,memory,persona}.rs(各抽 1-5 inner helper + 集成测试)/ progress/test-coverage-2026-05-04.md(完整报告)
+- **关键学习**:① **DB integration test 不能再缺位** — M1 D2 H.1 / F.1 / F.2 / I.1 实施时若有 fresh_db fixture,plugin preload 这种"地基级" bug 不会潜伏 6 commits ② **sqlx 与 SQLite 默认 PRAGMA 不一致**是隐藏地雷,FK 行为差异在 prod 不会被发现直到第一次跨表写入 — 测试 + B.2 ensure_conversation 双保险 ③ **抽 inner helper > tauri mock**(testability vs prod 路径平衡的最优解)
+- **defer 项**:① P1 SqlitePool 抽象推到 M3+(并发 LLM 流 + scheduler + 主动陪伴写日志时再评估,届时若需要起 ADR-016)② P2 e2e smoke test 推到 M1 D5 I.1 完成 / B.2 接入后(届时 5 个 IPC 路径稳定,smoke 才有意义)③ PostToolUse hook(suggest-checks.cjs +DB 测试规则)推到 M1 D5+
+- **Ref**:`progress/test-coverage-2026-05-04.md`(完整 8 节报告)+ 本次 commit(待补)
 
 ---
 

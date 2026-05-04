@@ -44,6 +44,15 @@ async-stream = "0.3"
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-global-shortcut = "2"
 
+# DB 集成测试 dev-deps(2026-05-04 新增,详 progress/test-coverage-2026-05-04.md):
+# - tempfile:每个测试一份独立 .db 文件,避免共享状态串味;Drop 自动清理
+# - tokio macros + rt:async 测试用 #[tokio::test] 宏(sqlx::test 宏依赖 tokio runtime)
+# - 不引 sqlx::test 宏:它默认创建 PostgreSQL/MySQL DB,SQLite 路径需 sqlite_test_runner,
+#   配置成本 > tempfile + apply migrations 手卷方式
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
 [features]
 custom-protocol = ["tauri/custom-protocol"]
 

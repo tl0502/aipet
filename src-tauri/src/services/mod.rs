@@ -22,3 +22,7 @@ pub mod shortcuts;
 pub mod tray;
 pub mod window_actions;
 pub mod window_snap;
+
+// 仅测试期编译:DB 集成测试共享 fixture(详 progress/test-coverage-2026-05-04.md)
+#[cfg(test)]
+pub mod test_db;

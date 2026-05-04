@@ -4,9 +4,9 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`455e005 feat(llm): B.1 LLMProvider OpenAI compat streaming + DPAPI + dev e2e`(本笔)
+- **Last commit**:`<待补>(本笔 test(services))` ← `97673ab fix(db): plugin preload + builder API + dev panel 表白名单全开`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-04(B.1 LLMProvider 落地 — 6 preset + DPAPI secrets + OpenAI compat streaming + dev e2e + 8 维度 audit Pass + cargo test 31 → 62)
+- **Last updated**:2026-05-04(DB 集成测试缺位补齐 + B.1 hotfix 收口 — 22 真实 DB 集成测试 fresh_db fixture + 14 inner helper 抽取 + [HIGH] sqlx FK 默认 ON 契约发现;同期 fix(db) plugin preload + builder API + dev 表白名单 27 张;cargo test 62 → 87)
 
 ---
 
@@ -24,11 +24,11 @@
 
 | Story | Commit | Date |
 |---|---|---|
+| **test(services): DB 集成测试缺位补齐**(B.1 实施暴露 7 services / 62 单测全是纯逻辑,DB 写入路径完整周期没真跑过 → tempfile + 手卷 migrations fresh_db fixture + 22 真实 DB 集成测试 secrets 3 / nickname 6 / memory 8 / persona 5 + 3 fixture self-test + 抽 14 `_with_conn` inner helper(行为等价 refactor for testability);**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 ChatService 必须 ensure conversation 存在 — `insert_message_rejects_unknown_conversation_id` 守住此契约;cargo test 62 → 87)| `<待补>` | 2026-05-04 |
+| **fix(db): plugin preload + builder API + dev panel 表白名单全开**(B.1 e2e 测试暴露 3 处 dev/DB 基础设施缺口:① tauri.conf.json 加 `plugins.sql.preload` 让 tauri-plugin-sql 2.x migrations 真正跑起来,aipet.db 之前从未被创建 ② commands/dev.rs `open_conn` 改 builder API 避开 Windows 反斜杠 `from_str("sqlite:C:\\...")` 失败 ③ ALLOWED_TABLES 5 → 27 全 schema 白名单)| `97673ab` | 2026-05-04 |
 | **B.1 LLMProvider**(OpenAI 兼容 streaming chat completion + DPAPI 取 key)— `secrets.rs` CRUD + `llm.rs` `OpenAiCompatProvider`(KISS struct 不抽 trait;P1-R1 接 Anthropic 再抽)+ 6 preset(openai/deepseek/moonshot/qwen/ollama/custom)+ SSE 解析纯函数 + base_url normalize + GET /v1/models ping + 5 IPC + dev_llm_test_stream(debug-only e2e)+ Events `dev.llm.token`/`done`;cargo test 31 → 62;8 维度 audit Pass(0 C/0 H/1 修 `Client::new()` fallback + import hack/ M2-M3-B.2 defer 3 项)| `455e005` | 2026-05-04 |
 | **用户主动复审 + 4 处治理同步缺口修补**(post-P0 follow-up audit;9 维度交叉审查 1 Critical + 2 High + 1 Low + 1 Medium 遗留;F1+F2+F3+F4 合并一笔纯 docs) | `99066a8` | 2026-05-04 |
 | **plan §10.1 P0-2 settings.local.json 漂移清理**(精算 21 条:A 桶 17 + B 桶 4;91 → 69 行;.gitignore L54 排除不进 git,本地 hygiene 直接生效) | (本地)| 2026-05-04 |
-| **plan §10.2 P1-3 /milestone-gate 总入口命令**(7 步流程串联 5 SOP + gate-checker 综合;5 个 `--skip-*` + `--gate-only`;补完三层智能触发 L3 闭环) | `66114b5` | 2026-05-04 |
-| **audit-coverage P0 落地 4 笔 atomic**(5 SOP commands + obs-checker agent + suggest-checks.cjs PostToolUse hook + ship-task 7 类智能建议;详 `audit-coverage-2026-05-04.md`) | `91dca81` → `eb764d6` → `cefc411` → `bed8442` | 2026-05-04 |
 
 ---
 
@@ -56,6 +56,7 @@
 
 > **维护规则**:见 CLAUDE.md § CURRENT.md 维护规则。8 条上限,新决策推入时把最早 1 条挤出(完整版必先 sink 到 `progress/decisions-log.md`);每条 ≤ 200 字符。
 
+- **2026-05-04**:**DB 集成测试缺位补齐** — tempfile + 手卷 migrations fixture(不引 sqlx::test 宏 / mock_app)+ 22 真实 DB 集成测试(secrets 3 + nickname 6 + memory 8 + persona 5)+ 14 inner helper 抽取;**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 必须 ensure conversation;cargo test 62 → 87
 - **2026-05-04**:**B.1 LLMProvider 落地** — `secrets.rs` CRUD + `llm.rs` OpenAiCompatProvider(KISS struct 不抽 trait,P1-R1 接 Anthropic 再抽)+ 6 preset + SSE 解析纯函数 + base_url normalize 兜底 DeepSeek 缺 v1 + GET /v1/models ping + dev_llm_test_stream e2e;架构 §6.1 trait 接口微调为 struct 直暴(待 doc-aligner 同步);cargo test 31→62
 - **2026-05-04**:vibecoding harness 研究 + plan §10 P1-3/P0-2 — 输出 plan 12 节(token 估算 / hook+slash command+permission 三类深度分析);6 笔 commit 落地(milestone-gate + settings.local.json 漂移清理 21 条);**关键学习**「研究阶段必先 git status 抓 baseline」
 - **2026-05-04**:audit-coverage P0 4 笔 atomic — 10 类盘点 C1-C10(✅2/🟡3/❌5),P0 补 5 类缺位 SOPs + obs-checker + suggest-checks.cjs hook + ship-task 7 类建议;**三层智能触发**设计(L1 hook / L2 ship-task / L3 milestone-gate)
@@ -63,7 +64,6 @@
 - **2026-05-03**:`/code-audit` 命令 + Run 1+2 首次扫描 — 8 维度纯漏洞扫描(注入/加密/数据完整性/输入边界/并发/错误处理/信息泄露/LLM 越狱)+ git diff 增量;`$branch` 33/33 = Pass(0 C/0 H/5 M/5 L/3 Won't);命名避开 Anthropic 内置 `/review`
 - **2026-05-03**:M1 D2/D3 hardening 5 笔 — start_drag 顺序倒置防 cursor_tracker 卡死 / hitbox NaN 输入加固 / persona seed sqlx::Tx + ON CONFLICT 与 migrations/002 UNIQUE INDEX 强绑定 / Hitbox saturating + 7 单测 / cursor_tracker init regression(42bb4c7 丢失 set_ignore)
 - **2026-05-03**:DEV-1 Admin/Debug 面板 — 独立 webview "dev" 窗口 + Ctrl+Shift+D + 4 tabs(IPC Playground / Tables / Events / Logs);`#[cfg(debug_assertions)]` + `import.meta.env.DEV` 双重排除 release;白名单 5 表防 SQL 注入
-- **2026-05-03**:F.2 NicknameService facade — `nicknames` 单行表(取代 m1.md 字面 user_state.xxx)+ 5 services + 5 IPC + nickname.changed event;get_pet 三级 fallback;set_pet 自动备份 previous;restore_pet 原子 swap
 
 ---
 

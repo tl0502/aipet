@@ -134,12 +134,24 @@ pub async fn seed_builtin<R: Runtime>(app: &AppHandle<R>) -> Result<(), PersonaE
         .connect()
         .await?;
 
-    let mut tx = conn.begin().await?;
-    upsert_persona(&mut tx, &parsed, "builtin", MOMO_BUNDLED_PATH).await?;
-    insert_snapshot_if_new(&mut tx, &parsed.frontmatter.id, &parsed).await?;
-    tx.commit().await?;
-
+    seed_persona_with_conn(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH).await?;
     conn.close().await?;
+    Ok(())
+}
+
+/// Inner helper(2026-05-04 test-coverage):接 SqliteConnection,不依赖 AppHandle。
+///
+/// 与 prod `seed_builtin` 完全等价的 SQL 语义:begin tx → UPSERT persona → INSERT snapshot → commit。
+pub(crate) async fn seed_persona_with_conn(
+    conn: &mut sqlx::SqliteConnection,
+    parsed: &ParsedPersona,
+    source: &str,
+    file_path: &str,
+) -> Result<(), PersonaError> {
+    let mut tx = conn.begin().await?;
+    upsert_persona(&mut tx, parsed, source, file_path).await?;
+    insert_snapshot_if_new(&mut tx, &parsed.frontmatter.id, parsed).await?;
+    tx.commit().await?;
     Ok(())
 }
 
@@ -251,6 +263,148 @@ mod tests {
         assert!(
             parsed.raw_markdown.contains("# 身份"),
             "raw_markdown must contain # 身份 heading"
+        );
+    }
+
+    // ===== DB 集成测试(2026-05-04 test-coverage P0)=====
+
+    use crate::services::test_db::fresh_db;
+
+    #[tokio::test]
+    async fn seed_builtin_writes_personas_row() {
+        let (_dir, mut conn) = fresh_db().await;
+        let parsed = parse_persona(MOMO_RAW).unwrap();
+        seed_persona_with_conn(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH)
+            .await
+            .unwrap();
+
+        // personas 表应有 momo 一行,is_active = 1
+        let row: (String, String, String, String, String, i64) = sqlx::query_as(
+            "SELECT id, name, version, source, file_path, is_active FROM personas WHERE id = ?",
+        )
+        .bind(&parsed.frontmatter.id)
+        .fetch_one(&mut conn)
+        .await
+        .unwrap();
+        assert_eq!(row.0, "momo");
+        assert_eq!(row.1, "默默");
+        assert_eq!(row.2, "1.0.0");
+        assert_eq!(row.3, "builtin");
+        assert_eq!(row.4, MOMO_BUNDLED_PATH);
+        assert_eq!(row.5, 1, "seeded persona must be active");
+    }
+
+    #[tokio::test]
+    async fn seed_builtin_writes_persona_snapshot() {
+        let (_dir, mut conn) = fresh_db().await;
+        let parsed = parse_persona(MOMO_RAW).unwrap();
+        seed_persona_with_conn(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH)
+            .await
+            .unwrap();
+
+        // persona_snapshots 表应有 (momo, 1.0.0) 一行
+        let row: (String, String) = sqlx::query_as(
+            "SELECT persona_id, version FROM persona_snapshots WHERE persona_id = ?",
+        )
+        .bind(&parsed.frontmatter.id)
+        .fetch_one(&mut conn)
+        .await
+        .unwrap();
+        assert_eq!(row.0, "momo");
+        assert_eq!(row.1, "1.0.0");
+    }
+
+    #[tokio::test]
+    async fn seed_builtin_is_idempotent() {
+        // 关键:启动时 seed 多次(用户重启 / dev tooling reload)不能重复插入 snapshot
+        let (_dir, mut conn) = fresh_db().await;
+        let parsed = parse_persona(MOMO_RAW).unwrap();
+
+        // 跑 3 次 seed
+        for _ in 0..3 {
+            seed_persona_with_conn(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH)
+                .await
+                .unwrap();
+        }
+
+        // personas 仍然只有 1 行(UPSERT)
+        let persona_count: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM personas WHERE id = 'momo'")
+                .fetch_one(&mut conn)
+                .await
+                .unwrap();
+        assert_eq!(persona_count.0, 1, "personas idempotent under repeat seed");
+
+        // persona_snapshots 也只有 1 行(ON CONFLICT(persona_id, version) DO NOTHING + 002 unique idx)
+        let snap_count: (i64,) = sqlx::query_as(
+            "SELECT COUNT(*) FROM persona_snapshots WHERE persona_id = 'momo' AND version = '1.0.0'",
+        )
+        .fetch_one(&mut conn)
+        .await
+        .unwrap();
+        assert_eq!(snap_count.0, 1, "snapshot must be deduped by (persona_id, version)");
+    }
+
+    #[tokio::test]
+    async fn persona_snapshot_unique_index_blocks_direct_duplicate_insert() {
+        // 防御:002 migration 的 UNIQUE INDEX 必须能挡住绕过 ON CONFLICT 的直接 INSERT
+        // (例如未来 H.2 import flow 用了 INSERT 不带 ON CONFLICT)
+        let (_dir, mut conn) = fresh_db().await;
+        let parsed = parse_persona(MOMO_RAW).unwrap();
+        seed_persona_with_conn(&mut conn, &parsed, "builtin", MOMO_BUNDLED_PATH)
+            .await
+            .unwrap();
+
+        // 直接 INSERT 同 (persona_id, version) — 不走 ON CONFLICT,期待 unique 索引报错
+        let result = sqlx::query(
+            "INSERT INTO persona_snapshots (persona_id, version, content, created_at) \
+             VALUES ('momo', '1.0.0', 'duplicate', '2026-05-04')",
+        )
+        .execute(&mut conn)
+        .await;
+        assert!(
+            result.is_err(),
+            "direct duplicate INSERT must violate idx_persona_snapshots_unique_persona_version"
+        );
+    }
+
+    #[tokio::test]
+    async fn seed_different_versions_keeps_history_in_snapshots() {
+        // 用户改 .soul.md 的 version 字段:同 persona_id 不同 version 应在 snapshots 累积历史
+        let (_dir, mut conn) = fresh_db().await;
+        let v1 = parse_persona(
+            "---\nschema_version: 2\nid: momo\nname: 默默\nversion: 1.0.0\n---\n# 身份\nv1",
+        )
+        .unwrap();
+        let v2 = parse_persona(
+            "---\nschema_version: 2\nid: momo\nname: 默默\nversion: 1.1.0\n---\n# 身份\nv2",
+        )
+        .unwrap();
+
+        seed_persona_with_conn(&mut conn, &v1, "user", "/tmp/momo.v1.md")
+            .await
+            .unwrap();
+        seed_persona_with_conn(&mut conn, &v2, "user", "/tmp/momo.v2.md")
+            .await
+            .unwrap();
+
+        // personas 表 UPSERT 后只有 1 行 momo,name/version 是 v2 的
+        let persona_row: (String, String) =
+            sqlx::query_as("SELECT name, version FROM personas WHERE id = 'momo'")
+                .fetch_one(&mut conn)
+                .await
+                .unwrap();
+        assert_eq!(persona_row.1, "1.1.0", "personas.version reflects latest");
+
+        // persona_snapshots 应有 2 行历史(1.0.0 + 1.1.0)
+        let snap_count: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM persona_snapshots WHERE persona_id = 'momo'")
+                .fetch_one(&mut conn)
+                .await
+                .unwrap();
+        assert_eq!(
+            snap_count.0, 2,
+            "snapshots accumulate per-version history (audit trail)"
         );
     }
 }
