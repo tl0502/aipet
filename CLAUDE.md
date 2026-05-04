@@ -37,7 +37,7 @@
 - 模块开发:`feat/m{N}-d{day}-<topic>` ← 从 milestone/m{N} 拉
 - 收口与 push 流程:详 § 提交规范 + `/ship-task`(远程进度首先看 feature branch,不是 main)
 - CI 通过(lint + typecheck + cargo check + test + PII scan) + 1 reviewer 可合并
-- milestone 出口:gate-checker 角色生成 `progress/gate-m{N}.md`,出口达成则合 main 打 tag `v0.M{N}.0`
+- milestone 出口:打 `/milestone-gate m{N}` 总入口串联 5 SOP(perf-check / deps-audit / release-check / a11y-check / code-audit $branch)+ gate-checker 综合判断 → `progress/gate-m{N}.md`,出口达成则合 main 打 tag `v0.M{N}.0`
 
 ## 多 agent 协作协议(单人 × 串行 session,文件驱动)
 
@@ -62,12 +62,14 @@
 | 起草新 ADR(实施期发现新决策) | `adr-author` | "起草 ADR-NNN" / "需要新决策" |
 | 文档同步(6 份基线 + 路线图) | `doc-aligner` | "PRD §X 不准" / "升 v1.1" / "与现实偏差" |
 | Milestone 出口检查(M1-M5 末) | `gate-checker` | "M{N} 出口检查" / "出口判断" |
+| 漏洞扫描(commit / branch / milestone) | `code-reviewer`(via `/code-audit`) | "扫漏洞" / "code review" / "milestone 漏洞检查" |
+| 可观测性巡检(M1 D6+ logger 后) | `obs-checker` | "obs 检查" / "巡检日志" / "logger 覆盖" |
 
 > **subagent 选用判断**(网关修复后用):任务 ≤ 0.5 day 且 main 已勘察过相关上下文 → 直接做;模板化产出 / 跨 module 重构 / plan 审批 → 走 subagent。
 
-### 当前模式:main 直接做的 4 类场景
+### 当前模式:main 直接做的 6 类场景
 
-> 把对应 `.claude/agents/<role>.md` 当 SOP 参考,**不 spawn**。完成 task 后 `/ship-task` 收口(详 § 提交规范)。
+> 把对应 `.claude/agents/<role>.md` / `.claude/commands/<name>.md` 当 SOP 参考,**不 spawn**。完成 task 后 `/ship-task` 收口(详 § 提交规范)。
 
 **1. 实施任务**(模块号 / story ID,如「实施 I.2」「继续 B.3.a」)
 → 读 PRD §6.<模块> + 架构对应 § + 涉及 ADR → 拆 stories/tasks → 实施 + 测试 + cargo check → `/ship-task`
@@ -85,6 +87,23 @@
 **4. 出口检查**(milestone 末,如「M{N} 出口检查」)
 → **几乎只读**:对照路线图 §7.<M> 出口清单 → 跑 progress / git log / CI 历史 / 性能预算 → 写 `progress/gate-m{N}.md`(达成 / 未达成 + 修复任务清单)→ **不修代码 / 不改文档**(偏差留给场景 3)
 → SOP:[.claude/agents/gate-checker.md](.claude/agents/gate-checker.md)
+
+**5. 机械检查 / 巡检**(SOP-based,几乎只读 + 写 `progress/{type}-{date}.md`)
+→ commit 前漏洞扫描:`/code-audit $staged`(8 维度,5-30s)— SOP `code-reviewer.md`
+→ 模块完成 / milestone 末性能预算实测:`/perf-check --baseline`(BASELINE 9 项)
+→ 模块引入新依赖 / milestone 末:`/deps-audit --all`(Rust cargo-deny + Node pnpm audit + license)
+→ milestone 末发布健康:`/release-check --full`(bundle / smoke / WebView2)
+→ Vue 组件改动 / milestone 末:`/a11y-check --report`(键盘可达 / ARIA / 文案 / 快捷键 / 颜色 / 可控关闭)
+→ M1 D6+ logger 接入后:`obs-checker` 巡检 logger 覆盖 / PII / 错误吞没 / crash 收集
+→ 触发节奏:**L1 PostToolUse hook**(`suggest-checks.cjs` 单文件视角自动建议)+ **L2 `/ship-task` commit 完整性视角 7 类智能建议**(自动)+ **L3 milestone-gate 跨期视角**(场景 6)
+
+**6. milestone 末出口仪式**(`/milestone-gate m{N}` 总入口)
+→ 7 步串联:perf-check → deps-audit → release-check → a11y-check → code-audit $branch → gate-checker 综合 → 终端汇总
+→ 5 个 `--skip-*` flag + `--gate-only` 模式(已跑过补 gate 报告)
+→ 产出:`progress/{perf,deps-audit,release-check,a11y,code-review,gate-m{N}}.md` 全套
+→ SOP:[.claude/commands/milestone-gate.md](.claude/commands/milestone-gate.md)
+
+> 三层智能触发设计哲学详见 `progress/audit-coverage-2026-05-04.md` § 3 + decisions-log.md 2026-05-04「audit-coverage P0 落地」条目。
 
 ## Agent IO 契约(目标协作模式 — 网关修复后)
 

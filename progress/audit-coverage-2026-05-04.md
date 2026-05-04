@@ -179,6 +179,9 @@
 | 3 | C7 构建发布 | [`.claude/commands/release-check.md`](../.claude/commands/release-check.md) | command | ~150 |
 | 4 | C8 可观测性 | [`.claude/agents/obs-checker.md`](../.claude/agents/obs-checker.md) | agent | ~210 |
 | 5 | C9 UX/a11y/i18n | [`.claude/commands/a11y-check.md`](../.claude/commands/a11y-check.md) | command | ~170 |
+| 6 | **跨期 orchestrator(L3 milestone 视角)** | [`.claude/commands/milestone-gate.md`](../.claude/commands/milestone-gate.md) | command | ~242 |
+
+> 第 6 行 milestone-gate 是 plan §10.2 P1-3 后续追加(2026-05-04 同期落地 `66114b5`),补完三层智能触发 L3 跨期视角:**L1 hook 单文件视角**(suggest-checks.cjs)/ **L2 ship-task commit 完整性视角**(ship-task.md 7 类智能建议)/ **L3 milestone-gate 跨期视角**(7 步 orchestrator 串联 5 SOP + gate-checker 综合)。缺任何一层都漏检。
 
 设计原则(参照已有 4 个 agent / 4 个 command 的范式):
 

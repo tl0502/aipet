@@ -113,7 +113,7 @@ commit 成功后,看本笔 diff 内容,在「输出」第 5 步给出 **0-3** �
 | `src-tauri/migrations/*.sql` 新增或改动 | `/code-audit --staged` 维度 3 数据完整性 | 高 |
 | 跨 ≥ 3 个 service / Rust 文件 大 commit(> 200 行) | `/code-audit --staged`(8 维度漏洞扫) | 中 |
 | 完成 module-level 收口(`decisions-log.md` 加行 OR `m{N}.md` 整行 ✅) | `/perf-check --baseline` + `/code-audit --staged` | 高(milestone-relevant) |
-| `tracing::` / `log::` / `eprintln!` 改动 ≥ 5 处 | (M1 D6+ ringbuffer logger 落地后)调 `obs-checker` agent | 低(stub) |
+| `tracing::` / `log::` / `eprintln!` 改动 ≥ 5 处 | (M1 D6+ ringbuffer logger 落地后)调 `obs-checker` agent(SOP `.claude/agents/obs-checker.md` 已就绪,等实测覆盖)| 低(stub) |
 
 **判断规则**:
 - 仅当 diff **明确命中**模式才建议;不命中则第 5 步留空,输出 6 行

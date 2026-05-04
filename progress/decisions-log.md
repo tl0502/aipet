@@ -170,6 +170,31 @@
 - **依据**:Anthropic 2026 subagent spec — Tool Restriction Best Practices / Hooks 文档 / Slash Commands 文档
 - **Ref**:`6c67da2`(笔 1) / `e89d660`(笔 2) / `42fce14`(笔 3) / `87134da`(笔 4)
 
+### 2026-05-04 | audit-coverage P0 落地 + plan §10 P1-3/P0-2
+
+- **决策**:用户 2026-05-04 问"项目检查除纯代码漏洞还需要什么",引出 10 类盘点 C1-C10(✅ 2/10 + 🟡 3/10 + ❌ 5/10 缺位:C4 性能 / C6 依赖 / C7 构建 / C8 obs / C9 a11y);本期 P0 落地 5 份新 SOP + PostToolUse hook + ship-task 智能建议 + milestone-gate 总入口 + settings.local.json 漂移清理
+- **理由**:
+  1. **现有 4 个 agent + 4 个 command 不覆盖 5 类**,M1 末 gate-checker 想对账「内存 ≤ 250MB / bundle ≤ 80MB」时**无数据可对** — BASELINE.md § 性能预算速查 9 项数字从未跑过实测
+  2. **三层智能触发设计完整闭环** — L1 hook 单文件视角(suggest-checks.cjs)/ L2 ship-task commit 完整性视角(7 类智能建议)/ L3 milestone-gate 跨期视角(7 步 orchestrator);缺任何一层都漏检
+  3. **settings.local.json 110+ 条漂移**是 harness 唯一无自动维护机制处,P0-2 顺手清理 21 条 = A 桶 17(具体 PID / 一次性 URL / stale 端口 / 临时 echo / 一次性 git)+ B 桶 4(settings.json 完全重复)
+  4. **plan §10.1 原 P0-1 / P0-3 作废**:ExitPlanMode 后 git status 暴露用户已在 ship-task.md 实现了"commit 后智能建议"段(比 P0-1 commit 前强制扫描更优)+ PostToolUse suggest-checks 已就 advisory(P0-3 SessionStart 增强职责重叠)
+- **影响**:6 笔 atomic commit + 1 笔本地清理(.gitignore L54 排除):
+  - `91dca81` 5 SOPs(/perf-check + /deps-audit + /release-check + /a11y-check + obs-checker agent)+ audit-coverage 报告 231 行
+  - `eb764d6` PostToolUse `suggest-checks.cjs` 4 类 advisory hook + settings.json 注册
+  - `cefc411` ship-task.md 加 7 类 commit 后智能建议 + code-audit.md Step 0 用 Bash 自取绕开第三方网关在 Win 中文路径 frontmatter 解析失败 + gate-checker.md 加 milestone 切换流程文件回归检查
+  - `bed8442` CURRENT.md sync(audit-coverage 4 笔后)
+  - `66114b5` /milestone-gate 总入口命令(plan §10.2 P1-3,7 步 orchestrator + 5 个 --skip-* + --gate-only)
+  - `38dc2b7` CURRENT.md sync(P1-3 + P0-2 后)
+  - 本地 settings.local.json 91 → 69 行(P0-2 21 条清理)
+- **关键学习**:
+  1. **研究阶段必先 git status** 看工作树状态,不要信任 CURRENT.md 的 Last commit 字段(本案 CURRENT 写 8960b24 实际 HEAD 已是 649ae5f)
+  2. **plan 文件加「已确认实施范围」段**区分研究 vs 实施(本案 plan §12)
+  3. **slash command 内不能程序化 chain 调其他 slash command**(SlashCommand 不在 Claude 工具集),`/milestone-gate` 等"总入口"命令是 main 主导让 Claude 照子 SOP 步骤逐个跑
+  4. **认知错位的根源是「文档驱动 + 状态过时」的固有矛盾** — audit-coverage 报告 §5 表格写「✅ 落地状态」但 in-flight 未 commit 的状态没有表格能反映;修法不在工具,在流程(研究类任务必先 git status 抓 baseline)
+  5. **本次合作模式**:用户先于研究做了 in-flight 工作,我帮收口 commit + 补 P1-3 + P0-2;事后用户主动让我"再检查一遍"才发现 CLAUDE.md / decisions-log / audit-coverage §5 三处治理同步缺口 — **整改后必须主动跑治理同步检查**,不能等用户问
+- **不做**:① subagent 网关诊断(上游 Calcium-Ion/new-api 高并发限制无解)② 引入新 npm 依赖给 hook(项目硬约束最小依赖)③ ADR-016 vibecoding harness 体检(常规治理无需 ADR 形式)④ Co-Authored-By 签名补回(本次 6 笔 commit 已 push,history rewrite 风险高,后续 commit 注意)
+- **Ref**:`91dca81` → `eb764d6` → `cefc411` → `bed8442` → `66114b5` → `38dc2b7` + `progress/audit-coverage-2026-05-04.md`(231 行)+ plan 文件 `~/.claude/plans/claude-vibecoding-claude-session-fluttering-anchor.md`(541 行,个人备忘)
+
 ---
 
 ## 模板(新增条目时复制)
