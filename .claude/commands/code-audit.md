@@ -4,6 +4,8 @@ allowed-tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git bra
 argument-hint: [revision-range | $staged | $branch | $since-last | --full] [--include-tests]
 ---
 
+> **SOP mirror 注释**(2026-05-04):本 command 内嵌完整 8 维度 SOP(网关 panic 期间是真实执行入口);网关恢复后用 `agents/code-reviewer.md` spawn 隔离 worker。**两份 SOP 必须 mirror — 改一边必同步另一边**(否则双份维护会漂移)。
+
 ## 任务
 
 对项目代码做 8 维度纯技术漏洞扫描,基于 git diff 增量推进。**不评判业务逻辑、架构对齐、产品决策、性能预算、测试覆盖率** — 这些维度由 doc-aligner / gate-checker / 用户人工 review 处理。

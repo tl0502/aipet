@@ -78,17 +78,17 @@
 
 ### C5 测试覆盖与有效性 — 🟡 中等
 
-- 现状:CI cargo test(31 passed)+ module-implementer DoD「核心 service ≥ 70%」
+- 现状:CI cargo test(31 passed)+ ~~module-implementer DoD「核心 service ≥ 70%」~~ ⚠️ **已于 2026-05-04 治理升级废弃**(commit f6ec85f),改用 [CLAUDE.md § 测试覆盖底线](../CLAUDE.md) 3 层覆盖(纯逻辑单测 + 真实路径集成测试 + dev panel e2e),单层不算 done
 - 证据:Vitest 注释着「M2 实施 PersonaService / ChatService 时启用」未启用(ci.yml 行 71-72);覆盖率工具未配;无 E2E
 - 缺口:Rust 单测有但**无覆盖率门禁**;前端 Vue 完全无测;Tauri 全栈 E2E 缺位
-- 建议:**P2 启用 Vitest 覆盖率门禁**(M2 起,B.2 ChatService 落地必含);E2E 推到 M5 灰度前再决策(可能用 WebDriver)
+- 建议:**P2 启用 Vitest 覆盖率门禁**(M2 起,B.2 ChatService 落地必含);E2E 推到 M5 灰度前再决策(可能用 WebDriver);3 层覆盖底线已生效(详 commit `4abceea` 落地 22 集成测试)
 
 ### C6 依赖与供应链 — ❌ 缺位
 
 - 现状:code-audit 顺手扫 Cargo.toml / package.json 新增依赖名(只判可疑,不判 CVE)
 - 证据:**无 cargo audit / pnpm audit / license 扫描 / SBOM**;decisions-log 2026-05-03 提了一句「依赖 CVE 审计交给 cargo audit / pnpm audit 专业工具」,**但工具尚未集成 CI**
 - 缺口:依赖了 13 个 Rust crate + 13 个 Node 包(直接依赖),**任何一个上游 CVE 都会无声无息**
-- 建议:**P1 补 `/deps-audit` 命令 + CI job**(本期落地 SOP,CI 集成单独 commit)— 用 cargo-deny 单工具替代 cargo-audit;pnpm audit + license 白名单脚本
+- 建议:~~**P1 补 `/deps-audit` 命令 + CI job**(本期落地 SOP,CI 集成单独 commit)— 用 cargo-deny 单工具替代 cargo-audit;pnpm audit + license 白名单脚本~~ ✅ **已落地于 2026-05-04 同期**(commit `91dca81 → eb764d6 → cefc411 → bed8442` audit-coverage P0 4 笔 atomic),`commands/deps-audit.md` SOP 就绪含 starter `deny.toml` 配置;CI 集成 yaml 仍待单独 commit(M2+)— 详 §5 表第 2 行
 
 ### C7 构建与发布健康度 — ❌ 缺位
 
@@ -183,7 +183,7 @@
 
 > 第 6 行 milestone-gate 是 plan §10.2 P1-3 后续追加(2026-05-04 同期落地 `66114b5`),补完三层智能触发 L3 跨期视角:**L1 hook 单文件视角**(suggest-checks.cjs)/ **L2 ship-task commit 完整性视角**(ship-task.md 7 类智能建议)/ **L3 milestone-gate 跨期视角**(7 步 orchestrator 串联 5 SOP + gate-checker 综合)。缺任何一层都漏检。
 
-设计原则(参照已有 4 个 agent / 4 个 command 的范式):
+设计原则(参照报告时点已有 4 个 agent / 4 个 command 的范式;落地后 → 6 agent + 9 command):
 
 - **agent vs command 决策**:agent 用于长上下文巡检(如 obs-checker 需要全仓 grep + 语义层判断);command 用于机械动作(如 perf-check 跑 PowerShell 测内存)
 - **几乎只读** + 只写 `progress/`(同 gate-checker / code-reviewer 范式)

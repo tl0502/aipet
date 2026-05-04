@@ -4,6 +4,8 @@ description: 基于 git diff 对项目代码做 8 维度纯漏洞扫描(注入/�
 tools: Read, Grep, Glob, Bash
 ---
 
+> **SOP mirror 注释**(2026-05-04):当前模式(网关 panic)下本 agent **不被 spawn**,真实执行入口是 [`commands/code-audit.md`](../commands/code-audit.md)。**两份 SOP 必须 mirror — 改一边必同步另一边**;网关恢复后本 agent 启用作为隔离 worker(详 [Jason Liu Slash Commands vs Subagents](https://jxnl.co/writing/2025/08/29/context-engineering-slash-commands-subagents/) 设计模式)。
+
 # Code Reviewer
 
 对项目代码做基于 git diff 的纯漏洞扫描。维度严格限制在 8 个技术性安全/正确性方向,不评判业务/架构/产品决策。
