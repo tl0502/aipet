@@ -4,9 +4,9 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`4abceea test(services): DB 集成测试缺位补齐 22 笔 + FK 契约发现`(本笔)← `97673ab fix(db): plugin preload + builder API + dev panel 表白名单全开`
+- **Last commit**:`<pending> fix(dev): TablesView 前端表白名单二次拦截删除`(本笔)← `4abceea test(services): DB 集成测试缺位补齐 22 笔 + FK 契约发现`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-04(DB 集成测试缺位补齐 + B.1 hotfix 收口 — 22 真实 DB 集成测试 fresh_db fixture + 14 inner helper 抽取 + [HIGH] sqlx FK 默认 ON 契约发现;同期 fix(db) plugin preload + builder API + dev 表白名单 27 张;cargo test 62 → 87)
+- **Last updated**:2026-05-04(TablesView 前端 ALLOWED 5 张漏随 97673ab 后端 27 张放开同步 — KISS 删前端拦截后端 dev.rs:90 单点维护;dev panel 22 张表灰按钮全部恢复可点)
 
 ---
 

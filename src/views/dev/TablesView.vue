@@ -9,8 +9,9 @@ const rows = ref<Record<string, unknown>[]>([])
 const error = ref<string>('')
 const loading = ref(false)
 
-const ALLOWED = ['personas', 'messages', 'nicknames', 'persona_snapshots', 'conversations']
-
+// 白名单由后端 dev.rs ALLOWED_TABLES 单点维护(全 schema 27 张),
+// 前端不做二次拦截 — 早期硬编码 5 张是 D2 第一版遗留,与 97673ab 后端放开漂移
+// 真有越权请求由后端返回 Err 携带白名单清单自然显示
 onMounted(async () => {
   try {
     tables.value = await invoke<string[]>('dev_list_tables')
@@ -53,13 +54,11 @@ function fmtCell(v: unknown): string {
       <button
         v-for="t in tables"
         :key="t"
-        :disabled="!ALLOWED.includes(t)"
-        :title="ALLOWED.includes(t) ? '' : '不在 dev_query_table 白名单里'"
         :class="['action', selected === t ? '' : '']"
         :style="{
           marginRight: '6px',
           background: selected === t ? 'var(--accent)' : 'var(--bg-alt)',
-          color: ALLOWED.includes(t) ? 'var(--text)' : 'var(--text-muted)',
+          color: 'var(--text)',
           border: '1px solid var(--border)',
         }"
         @click="loadTable(t)"
