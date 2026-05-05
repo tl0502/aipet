@@ -40,6 +40,12 @@ eventsource-stream = "0.2"
 futures = "0.3"
 async-stream = "0.3"
 
+# B.2 ChatService:tokio-util CancellationToken 用于 chat_cancel
+# - 不引 tokio crate(已通过 reqwest / sqlx transitive 进来),只新加 util layer
+# - features=["rt"] 提供 CancellationToken(无 runtime 依赖,纯协作取消)
+tokio = { version = "1", default-features = false, features = ["rt", "macros", "sync"] }
+tokio-util = { version = "0.7", default-features = false }
+
 # 仅桌面平台启用全局快捷键(避免 mobile 编译报错;M1-M5 不上 mobile,提前规范)
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-global-shortcut = "2"

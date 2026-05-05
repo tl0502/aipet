@@ -8,7 +8,8 @@
 // M1 D3:DEV-1 dev_window(debug-only,Ctrl+Shift+D 打开 admin/debug 面板)
 // M1 D3:B.1 secrets(secrets 表 CRUD + DPAPI 包装;为 LLM provider api_key 持久化)
 // M1 D3:B.1 llm(OpenAI 兼容 streaming chat completion + 6 preset)
-// M1 D3+:ChatService
+// M1 D3+:B.2 chat(对话编排 — 安全前缀 + persona + nickname + 历史 → LLMProvider 流式)
+pub mod chat;
 pub mod crypto;
 pub mod cursor_tracker;
 #[cfg(debug_assertions)]

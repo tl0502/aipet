@@ -17,7 +17,7 @@ export interface CommandMeta {
   name: string
   description: string
   params: CommandParam[]
-  category: 'core' | 'window' | 'nickname' | 'llm' | 'dev'
+  category: 'core' | 'window' | 'nickname' | 'llm' | 'chat' | 'dev'
 }
 
 export const COMMAND_REGISTRY: CommandMeta[] = [
@@ -123,6 +123,43 @@ export const COMMAND_REGISTRY: CommandMeta[] = [
     ],
     category: 'llm',
   },
+  // ===== B.2 ChatService(架构 §3 / ADR-015)=====
+  {
+    name: 'chat_send',
+    description: 'B.2 启动一轮对话:立即返 { messageId, conversationId };流式 emit chat:token/done/error。先 listen events 再 invoke。',
+    params: [
+      { name: 'conversationId', type: 'string?', required: false, description: '为空自动新建 ULID conversation' },
+      { name: 'provider', type: 'string', required: true },
+      { name: 'baseUrl', type: 'string', required: true },
+      { name: 'model', type: 'string', required: true },
+      { name: 'userMessage', type: 'string', required: true, description: '用户本轮输入' },
+    ],
+    category: 'chat',
+  },
+  {
+    name: 'chat_cancel',
+    description: 'B.2 取消进行中的 chat — 通过 message_id 触发 CancellationToken,运行中 stream 早终止',
+    params: [{ name: 'messageId', type: 'string', required: true }],
+    category: 'chat',
+  },
+  {
+    name: 'chat_history',
+    description: 'B.2 列 conversation 内历史消息(默认 limit=50,按 created_at 升序)',
+    params: [
+      { name: 'conversationId', type: 'string', required: true },
+      { name: 'limit', type: 'number?', required: false },
+    ],
+    category: 'chat',
+  },
+  {
+    name: 'conversation_create',
+    description: 'B.2 创建新 conversation(M3 之前最小 helper;返回 { id })',
+    params: [
+      { name: 'personaId', type: 'string', required: true, description: '通常 momo' },
+      { name: 'title', type: 'string?', required: false },
+    ],
+    category: 'chat',
+  },
   {
     name: 'dev_list_tables',
     description: 'DEV-1 列 sqlite 数据库内所有非系统表名',
@@ -161,4 +198,8 @@ export const TRACKED_EVENTS: readonly string[] = [
   // B.1 dev_llm_test_stream(debug-only;release build 不会触发,留这里 dev 期监控)
   'dev:llm:token',
   'dev:llm:done',
+  // B.2 ChatService 流式事件(架构 §5.2)
+  'chat:token',
+  'chat:done',
+  'chat:error',
 ] as const

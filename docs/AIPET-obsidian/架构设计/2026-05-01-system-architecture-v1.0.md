@@ -560,6 +560,8 @@ CREATE TABLE error_logs (
 
 ### 5.1 Commands(前端 → 主进程)
 
+> **命名约束**(Tauri 2.x runtime):IPC command name 仅允许 `[a-zA-Z0-9_]`(下划线),不允许 `.`。本表中点号写法 `chat.send` / `conversation.list` 等是**逻辑分组**形式,实际后端注册名为 snake_case(`chat_send` / `conversation_create` 等;参 `commands/chat.rs` + `commands/llm.rs` 已落地命名)。前端 binding 层(`src/ipc/`)直接调用 snake_case 名字,无需做映射。Event name 则可保留 `:` 分隔(见 §5.2)。
+
 ```ts
 // ==== 对话 ====
 chat.send(input: string, conversationId?: string): Promise<{ messageId: string }>

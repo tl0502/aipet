@@ -293,6 +293,14 @@
 - **影响**:CLAUDE.md(主)+ adr-author.md / gate-checker.md / module-implementer.md / hook 注释
 - **Ref**:见 CURRENT.md prior 同步(2026-05-04 已经过)
 
+### 2026-05-03 | M1 D2/D3 hardening 5 笔(从 CURRENT 挤出 sink)
+
+- **决策**:M1 D2/D3 期 5 笔小型 hardening 闭环 — ① `start_drag` 顺序倒置(先 set_ignore_cursor_events(false) 再 start_dragging,防 cursor_tracker 卡死,因 dragging 期间 hitbox 不更新)② commands/window.rs::update_hitbox NaN/Inf/超 i32 范围输入校验 + i64 中间运算防 cssX*scale overflow ③ persona seed 走 sqlx::Transaction + ON CONFLICT(persona_id, version) DO NOTHING + migrations/002 建 UNIQUE INDEX 强绑定(双重幂等)④ state.rs::Hitbox::{contains, expand} 全 saturating 链 + 7 单测覆盖 i32::MAX/MIN 边界 ⑤ cursor_tracker init `last_ignore: Option<bool>` 补 42bb4c7 init 语义 regression(老代码 loop 前显式 `set_ignore(true)`,42bb4c7 把 window get 进 loop 时丢失了这步,启动 1-2s 实际不穿透);cargo test 27 全过
+- **理由**:① start_drag bug 用户实测拖动后 cursor_tracker 不再恢复 ignore(rare,但脏) ② NaN 输入虽是异常路径,但 Rust f64 → i32 cast 在 NaN 时未定义行为(Rust 1.45+ saturating cast,旧版本 UB),defensive 一致性 ③ persona 重复 seed 应该幂等,UNIQUE INDEX 是 schema 级守卫(挡住未来 H.2 import 路径绕过 ON CONFLICT)④ saturating 数值是 hitbox 在 i32::MAX 屏幕坐标(多屏极端)下的兜底,benign UB 转可定义行为 ⑤ init regression 是 42bb4c7 大重构期间的 silent 丢失,只有用户实测启动期才能 catch,引入 7 单测但更需要回归基线
+- **影响**:src-tauri/src/services/cursor_tracker.rs / commands/window.rs / services/persona.rs / migrations/002_persona_snapshot_unique.sql / state.rs;cargo test 20→27;hardening 后 D2/D3 实施期 hitbox + 拖动 + persona seed 三块基础设施稳态
+- **关键学习**:① **重构期 silent 丢失只能靠测试或用户实测兜底** — 42bb4c7 cursor_tracker init 重构没破单测,但破了启动期实际行为,提示重构需要 init/destroy 路径单测覆盖 ② **saturating 数值是默认正确选择** — Rust i32 算术 debug panic / release wrap,saturating 都不会,边界 case 行为可定义且符合直觉 ③ **schema-level UNIQUE INDEX > application-level ON CONFLICT** — 后者只挡走 ON CONFLICT 的路径,前者挡所有 INSERT(防御纵深)
+- **Ref**:`1677cef` + `b49b7bd` + `59fd182` + `8d72f9c` + cursor_tracker init regression 笔(M1 D3 收口)
+
 ### 2026-05-04 | B.1 LLMProvider 落地
 
 - **决策**:OpenAI 兼容 streaming chat completion + DPAPI 取 key,~1 day 实施完成
@@ -335,6 +343,21 @@
 - **关键学习**:① **判据错位 ≠ 测试少** — bug 不是因为没测,是因为测的层次错;3 层覆盖比"加更多测试"更精准 ② **审核 gate 与 ship-task 工具解耦** — Step 0 是 ship-task 内的子步骤,不是新命令,与现有 SOP 兼容性最大 ③ **例外条款 = 用户授权口令** — `--yes` / "直接 ship-task" / "不用确认" 都识别,主动权在用户而非工具
 - **defer 项**:① 用户人工审核 vs CI 自动审核(M3+ CI 加 cargo test 真实 DB fixture 跑通门槛,届时考虑;现在仍是用户每次手批)② 测试覆盖底线在新 service 落地时是否需 module-implementer agent SOP 补 checklist(M1 D5+ subagent 网关恢复后做)
 - **Ref**:CLAUDE.md L23-32(§ 测试覆盖底线 + § 提交规范 修订)+ `.claude/commands/ship-task.md`(Step 0 + 必做检查第 5 步)+ 本次 commit(待补)
+
+### 2026-05-05 | B.2 ChatService MVP 落地
+
+- **决策**:`services/chat.rs` + `commands/chat.rs` 双模块,~6.5h 实施完成
+  - **安全前缀**:`SAFETY_PREFIX_V1` const(ADR-006 + 人格设计 §7.2 字面一致)— 通用核心 5 条 + zh-CN 危机资源(010-82951332 + 《未成年人保护法》)硬编码;multi-region 留 P1。**不**抽 SecurityGuard 独立 service(KISS,延后 LLM 游戏 Q 期再抽,与 B.1 OpenAiCompatProvider 不抽 trait 同款)
+  - **compose_system_prompt**:纯逻辑函数,拼装顺序 `[SAFETY_PREFIX_V1] + "\n---\n" + [persona body 替换 {pet_name}/{username}]`;{username} 缺失回退「朋友」;6 单测守住「safety prefix 必出现在 persona body 之前」「5 条核心规则 + zh-CN 资源 字面字符串都在」「占位被替换,raw 不漏」契约
+  - **run_chat orchestrator**:open_conn → load_active_persona(JOIN persona_snapshots 取最新 version)→ get_pet_nickname / get_user_nickname → ensure_conversation_with_conn(INSERT OR IGNORE 守 FK)→ insert user msg(role=user,mode=online)→ list 最近 N=20 历史 → 头部 prepend system message → close conn(streaming 期不持锁)→ chat_stream + tokio::select! 监听 cancel_token + emit `chat:token` 流 → 完成后再 open_conn 写 assistant msg + emit `chat:done` + touch last_activity_at
+  - **取消机制**:AppState 加 `chat_cancellations: Mutex<HashMap<String, CancellationToken>>`;chat_send 注册 token → spawn run_chat → 完成 / 失败 / cancelled 时 spawn task 自反注册;chat_cancel(message_id).cancel() 即触发 select! 早终止;tokio_util::sync::CancellationToken(协作取消,无 runtime 依赖)
+  - **IPC 4 命令**:`chat_send`(立返 {message_id, conversation_id} + 后台 spawn) / `chat_cancel`(幂等,未注册视为已完成) / `chat_history`(默认 limit=50,转发 memory::list_messages_by_conversation)/ `conversation_create`(最小 helper,完整 list/rename/archive/delete/activate CRUD 留 M3 B.3.d)
+  - **不在范围**:完整 ConversationStore(M3)/ 离线降级模板池(后续)/ token budget truncation(M3)/ B.3.a chat 窗 UI(M1 D5+)
+- **理由**:① **stream 期间不持 conn**:open → 写 user → close → stream → open → 写 assistant → close。避免长 sqlite 锁(stream 可能数秒);代价是多一次 connect 但 sqlite 文件级 connect 极轻 ② **历史 N=20**:momo persona body ~3KB,20×500 字符 ≈ 10KB,加 system prompt ~14KB,远小于 OpenAI 兼容 8K-128K context;M3 加 token budget 守卫再调 ③ **chat_cancel 注册顺序**:在 spawn 前先把 token 插 AppState,保证 chat_cancel 在 spawn task 拿到 token 之前调用也能命中;反注册由 spawn task 自己负责(避免 race 双 unregister)④ **架构 §5.1 IPC command 名 `.` 是逻辑分组,实际 snake_case**:Tauri 2.x command name 仅允许 `[a-zA-Z0-9_]`,与 §5.2 event name 允许 `:` 不同;in-place 加注脚说明,**不升 v1.1**(纯命名约定厘清,语义未变)
+- **影响**:src-tauri/{services/chat.rs(new 552 行)+ commands/chat.rs(new 152 行)+ services/mod.rs / commands/mod.rs / lib.rs(注册)+ state.rs(AppState +1 字段)+ Cargo.toml(+tokio rt/macros/sync +tokio-util)};src/ipc/dev.ts(IpcPlayground +4 chat_* command + TRACKED_EVENTS +3 chat:* events);docs/AIPET-obsidian/架构设计/...v1.0.md §5.1 顶部 IPC command 命名注脚;cargo test 87 → 101(+14:6 单测 + 2 fold + 1 mapping + 5 集成);typecheck + lint 0 warning
+- **关键学习**:① **B.1 KISS 决策传递到 B.2** — 不抽 SecurityGuard service,沿用 KISS struct / 函数式直接编排;抽象代价由"第二个具体使用者"支付(LLM 游戏 Q 期可能是) ② **测试覆盖底线 3 层落地** — 纯逻辑(compose / fold / llm_error_code 9 单测)+ DB 集成(ensure / load / no_active / e2e 5 测,fresh_db + seed_persona FK 父行)+ dev panel e2e(IPC Playground 4 命令 metadata,等用户手测)— 与 CLAUDE.md § 测试覆盖底线 同步,不留缺口 ③ **架构 §5.1 vs §5.2 命名异构**:command 名是 IPC 调用入口(Tauri 强约束 `[a-zA-Z0-9_]`),event 名是消息总线(允许 `:`);文档 `chat.send` 写法是逻辑分组,前端 binding 直接 invoke `chat_send` 物理名 — in-place 注脚澄清,无需升 v1.1
+- **defer 项**:① ConversationStore 完整 CRUD(list/rename/archive/delete/activate)→ M3 B.3.d ② 离线降级模板池(网络断时人格离线模板抽样)→ 后续 module ③ token budget 计算 / 历史 truncation → M3 ④ SecurityGuard 独立 service → LLM 游戏 Q 期 ⑤ persona_id 注入(目前从 active persona 取,assumes seed 已成功)→ 等 Onboarding O.1 让用户选 persona ⑥ chat:cancelled 显式 event(目前用 chat:error code=Cancelled 兜底)→ 协议简化期评估
+- **Ref**:本次 commit(待补)+ plan 文件 `~/.claude/plans/bright-wishing-teapot.md` + m1.md B.2 行 + ADR-006 / ADR-015 / 架构 §3 §5.1 §6.4 §7.1 §8.2
 
 ---
 

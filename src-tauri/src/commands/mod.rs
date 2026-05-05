@@ -1,3 +1,4 @@
+pub mod chat;
 #[cfg(debug_assertions)]
 pub mod dev;
 pub mod llm;

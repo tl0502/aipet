@@ -3,7 +3,7 @@ mod error;
 mod services;
 mod state;
 
-use commands::{llm, nickname, ping, window};
+use commands::{chat, llm, nickname, ping, window};
 #[cfg(debug_assertions)]
 use commands::dev;
 use services::window_actions::PET_WINDOW_LABEL;
@@ -97,6 +97,10 @@ pub fn run() {
             llm::secrets_delete_api_key,
             llm::secrets_test,
             llm::llm_list_presets,
+            chat::chat_send,
+            chat::chat_cancel,
+            chat::chat_history,
+            chat::conversation_create,
             #[cfg(debug_assertions)]
             llm::dev_llm_test_stream,
             #[cfg(debug_assertions)]

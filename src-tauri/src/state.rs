@@ -1,4 +1,7 @@
+use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard};
+
+use tokio_util::sync::CancellationToken;
 
 /// 容忍 Mutex poison 并继续:任一持锁线程 panic 后,其他线程仍能拿到 inner state(可能是中间状态)。
 ///
@@ -48,10 +51,15 @@ impl Hitbox {
 }
 
 // 主进程全局状态容器。M1 D2:加 hitbox + is_dragging,供 cursor_tracker 与 window commands 共享。
+// M1 D3 B.2:加 chat_cancellations,IPC chat_cancel(message_id) → 触发 CancellationToken
+//          → chat::run_chat 的 tokio::select! 早终止 stream(架构 §6.4)
 #[derive(Default)]
 pub struct AppState {
     pub pet_hitbox: Mutex<Option<Hitbox>>,
     pub is_dragging: Mutex<bool>,
+    /// (message_id → CancellationToken)。chat_send 启动时插入,run_chat 完成 / 失败时移除。
+    /// chat_cancel 查表 .cancel() 即触发 select! 早返回。
+    pub chat_cancellations: Mutex<HashMap<String, CancellationToken>>,
 }
 
 #[cfg(test)]
