@@ -2,7 +2,7 @@
 //
 // 5 个 commands 暴露给前端:get_pet / get_user / set_pet / set_user / restore_pet
 // 内部全部委托 services::nickname 模块,仅做 IPC 层错误转换(NicknameError → String)
-// `nickname.changed` event 在 service 层 emit,IPC 不重复 emit
+// `nickname:changed` event 在 service 层 emit,IPC 不重复 emit
 
 use crate::services::nickname;
 use tauri::AppHandle;

@@ -279,6 +279,13 @@
 - **不做**:① subagent 网关诊断(上游 Calcium-Ion/new-api 高并发限制无解)② 引入新 npm 依赖给 hook(项目硬约束最小依赖)③ ADR-016 vibecoding harness 体检(常规治理无需 ADR 形式)④ Co-Authored-By 签名补回(本次 6 笔 commit 已 push,history rewrite 风险高,后续 commit 注意)
 - **Ref**:`91dca81` → `eb764d6` → `cefc411` → `bed8442` → `66114b5` → `38dc2b7` + `progress/audit-coverage-2026-05-04.md`(231 行)+ plan 文件 `~/.claude/plans/claude-vibecoding-claude-session-fluttering-anchor.md`(541 行,个人备忘)
 
+### 2026-05-03 | DEV-1 开发期 Admin/Debug 面板(补 sink 自 CURRENT)
+
+- **决策**:独立 webview "dev" 窗口 + `Ctrl+Shift+D` 唤起,4 tabs(IPC Playground / Tables / Events / Logs);全 `#[cfg(debug_assertions)]` + `import.meta.env.DEV` 双重排除 release;`dev_query_table` 白名单 5 表(后于 97673ab 放开 27 全 schema)防 SQL 注入;IPC playground 写死 12 个命令 metadata,选中 → 表单填参 → 调用 → JSON 返回值
+- **理由**:dev 期需要直接 inspect SQLite + 调 IPC + 看 events,但生产二进制不能带,双重 cfg 保证 release 编译期排除;独立 webview 避免污染主窗口透明 / 置顶 / 穿透样式;UI 简单实用 > 美观,debug 工具不需要装饰
+- **影响**:src-tauri/src/services/dev_window.rs / commands/dev.rs / src/views/dev/(IPCPlayground/TablesView/EventsView/LogsView);capabilities/default.json 新增 dev 窗口的 webview 权限
+- **Ref**:`2d1e3a3` 等(M1 D3 落地)+ 97673ab(白名单放开)+ b843a07(前端 ALLOWED 漂移修复)
+
 ### 2026-05-03 | Claude 流程文件深度巡检减冗(从 CURRENT 挤出归档)
 
 - **决策**:CLAUDE.md 137→130 行减冗;5 处"完成 task 必更 progress + atomic commit + push"重复收口到 § 提交规范唯一权威源,其他 4 处改"详 § 提交规范";启动协议第 3 步措辞中性化(「按场景」替代「被指派」);§ Agent 决策矩阵 / § subagent 选用判断 / § 4 类场景 / § IO 契约 4 段重组为 2 段(当前模式优先 + 目标模式备查);adr-author / gate-checker / module-implementer 3 份 agent .md 同步成"main 直接做 / 网关修复后由 module-implementer";hook 注释 "由 adr-author 角色起草" → 「决策起草」SOP 中性表述
@@ -310,6 +317,15 @@
 - **关键学习**:① **DB integration test 不能再缺位** — M1 D2 H.1 / F.1 / F.2 / I.1 实施时若有 fresh_db fixture,plugin preload 这种"地基级" bug 不会潜伏 6 commits ② **sqlx 与 SQLite 默认 PRAGMA 不一致**是隐藏地雷,FK 行为差异在 prod 不会被发现直到第一次跨表写入 — 测试 + B.2 ensure_conversation 双保险 ③ **抽 inner helper > tauri mock**(testability vs prod 路径平衡的最优解)
 - **defer 项**:① P1 SqlitePool 抽象推到 M3+(并发 LLM 流 + scheduler + 主动陪伴写日志时再评估,届时若需要起 ADR-016)② P2 e2e smoke test 推到 M1 D5 I.1 完成 / B.2 接入后(届时 5 个 IPC 路径稳定,smoke 才有意义)③ PostToolUse hook(suggest-checks.cjs +DB 测试规则)推到 M1 D5+
 - **Ref**:`progress/test-coverage-2026-05-04.md`(完整 8 节报告)+ commit `4abceea`
+
+### 2026-05-04 | Tauri 2.x event name 约束发现 + 全量 `.` → `:`
+
+- **决策**:① 代码层把所有违规 event name `xxx.yyy` 改 `xxx:yyy`(`nickname.changed` / `dev.llm.token` / `dev.llm.done` 3 处真 emit + 5 处 TS listener tracked + persona/network 预防性同步)② 文档基线 in-place 修正(架构 §5.2 IPC event 表 28 条 + 顶部加 Tauri 2.x event name 约束注;flows v1.0 ASCII diagram 22 处)③ 不升 v1.1(命名规则适配运行时,IPC contract 语义未变)
+- **理由**:用户手测 F.2 `dev_set_pet_nickname` 触发 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted for event names: "nickname.changed"」— Tauri 2.x `Emitter::emit` 校验 event name 字符集,**`.` 不允许**。架构 §711 IPC event 表 28 条全部用 `.`,如不全量改,每个新模块 emit 时都会撞同样的墙(B.2 ChatService `chat.token`/`done`/`error` 已经在路上)。选 `:` 与 codebase 既有 `shortcut:chat` / `tray:show` 约定一致(也是 Tauri 文档 `tauri://moved` 风格)— 不选 `-` 防与短横线参数混
+- **影响**:src-tauri/src/services/nickname.rs(NICKNAME_CHANGED_EVENT 常量 + 4 处注释/断言)/ commands/llm.rs(2 处 emit + 1 处注释)/ commands/nickname.rs / services/mod.rs(1 处注释)/ src/ipc/dev.ts(TRACKED_EVENTS 5 条 + 3 处 description);docs/AIPET-obsidian/架构设计/2026-05-01-system-architecture-v1.0.md §5.2(28 条 + 顶部约束注);docs/AIPET-obsidian/需求设计/2026-05-01-ai-desktop-pet-flows-v1.0.md(22 处);未来 B.2 ChatService / 任务 / 物理交互 / 装扮 / 游戏等模块 emit 都按 `:` 命名;`_archive/` 历史文档不动(freeze)
+- **关键学习**:① **运行时约束需一次性扫齐** — 单点修不解决,等下个模块 emit 撞墙浪费;架构 §711 这样的契约表是检查清单,Tauri 升级时同类约束应对照 ② **`.` 是常见 namespace 习惯但与多框架冲突** — Tauri / DOM event / 部分消息总线都不允许;团队级命名 default 用 `:` 更安全 ③ **测试断言守住命名契约** — `event_name_matches_arch_contract` 单测 hardcode 期望值,改名时同步触发,挡 silent 漂移
+- **defer 项**:① 是否在 `services/mod.rs` 加常量集中所有 event name(单点真相 vs 分散在 service):暂分散,M2+ B.2 落地后 event 数量 ≥ 10 再考虑集中 ② Tauri 是否在 type-level 提供 event name validator(避开运行时 panic):上游 issue 跟踪,本地用单测兜底
+- **Ref**:本次 commit(待补)+ 架构 §5.2 + flows v1.0
 
 ### 2026-05-04 | 治理升级 — 测试覆盖底线 § + commit 审核 gate
 

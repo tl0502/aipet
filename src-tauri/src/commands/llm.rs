@@ -100,7 +100,7 @@ pub fn llm_list_presets() -> Vec<ProviderPreset> {
 //
 // 前端调用流程(IPC playground / Events tab):
 //   1. invoke('dev_llm_test_stream', { provider, base_url, model, user_message })
-//   2. 后端 chat_stream 逐 token 通过 emit('dev.llm.token', { delta }) 推送
+//   2. 后端 chat_stream 逐 token 通过 emit('dev:llm:token', { delta }) 推送
 //   3. 流结束后命令返回完整 fullText(供 IPC 调用方对照)
 //
 // release build 完全不编译此命令(双重排除:#[cfg(debug_assertions)] + lib.rs invoke_handler 注册处)
@@ -142,11 +142,11 @@ pub async fn dev_llm_test_stream<R: Runtime>(
             ChatChunk::Token(delta) => {
                 full_text.push_str(&delta);
                 // emit 失败不中断流(dev panel 可能未订阅)
-                let _ = app.emit("dev.llm.token", &delta);
+                let _ = app.emit("dev:llm:token", &delta);
             }
             ChatChunk::Done { latency_ms } => {
                 let _ = app.emit(
-                    "dev.llm.done",
+                    "dev:llm:done",
                     serde_json::json!({ "latency_ms": latency_ms, "full_text_len": full_text.len() }),
                 );
                 break;

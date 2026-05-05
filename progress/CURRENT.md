@@ -4,9 +4,9 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`b843a07 fix(dev): 删除 TablesView 前端表白名单二次拦截(后端单点维护)`(本笔)← `4abceea test(services): DB 集成测试缺位补齐 22 笔 + FK 契约发现`
+- **Last commit**:`<pending> fix(events): Tauri 2.x event name 全量 . → :(代码 + 架构 §5.2 + flows v1.0 + decisions-log)`(本笔)← `94df426 docs(progress): finalize SHA b843a07 + Recently Completed 维护`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
-- **Last updated**:2026-05-04(TablesView 前端 ALLOWED 5 张漏随 97673ab 后端 27 张放开同步 — KISS 删前端拦截后端 dev.rs:90 单点维护;dev panel 22 张表灰按钮全部恢复可点)
+- **Last updated**:2026-05-04(用户手测 F.2 set_pet_nickname 触发 Tauri 2.x event name panic — `.` 不允许;3 处真 emit + 5 处 TS tracked + 架构 §5.2 28 条 + flows v1.0 22 处全量 `.` → `:`;cargo test 87 passed)
 
 ---
 
@@ -22,11 +22,11 @@
 
 | Story | Commit | Date |
 |---|---|---|
+| **fix(events): Tauri 2.x event name 全量 `.` → `:`**(用户手测 F.2 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted」;代码层 nickname.rs / llm.rs / dev.ts 真 emit 3 + tracked 5 + persona/network 预防;基线 in-place 修架构 §5.2 28 条 + 顶部加 Tauri 约束注 + flows v1.0 22 处;不升 v1.1;cargo test 87 全过)| `<pending>` | 2026-05-04 |
 | **fix(dev): TablesView 前端表白名单二次拦截删除**(D2 第一版 ALLOWED 5 张未随 97673ab 后端放开同步,dev panel 22 张表灰着不可点;KISS 删前端拦截后端 dev.rs:90 单点维护,Err 自带 allow-list 文本;dev-only release 编译期排除无安全风险)| `b843a07` | 2026-05-04 |
 | **test(services): DB 集成测试缺位补齐**(B.1 实施暴露 7 services / 62 单测全是纯逻辑,DB 写入路径完整周期没真跑过 → tempfile + 手卷 migrations fresh_db fixture + 22 真实 DB 集成测试 secrets 3 / nickname 6 / memory 8 / persona 5 + 3 fixture self-test + 抽 14 `_with_conn` inner helper(行为等价 refactor for testability);**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 ChatService 必须 ensure conversation 存在 — `insert_message_rejects_unknown_conversation_id` 守住此契约;cargo test 62 → 87)| `4abceea` | 2026-05-04 |
 | **fix(db): plugin preload + builder API + dev panel 表白名单全开**(B.1 e2e 测试暴露 3 处 dev/DB 基础设施缺口:① tauri.conf.json 加 `plugins.sql.preload` 让 tauri-plugin-sql 2.x migrations 真正跑起来,aipet.db 之前从未被创建 ② commands/dev.rs `open_conn` 改 builder API 避开 Windows 反斜杠 `from_str("sqlite:C:\\...")` 失败 ③ ALLOWED_TABLES 5 → 27 全 schema 白名单)| `97673ab` | 2026-05-04 |
-| **B.1 LLMProvider**(OpenAI 兼容 streaming chat completion + DPAPI 取 key)— `secrets.rs` CRUD + `llm.rs` `OpenAiCompatProvider`(KISS struct 不抽 trait;P1-R1 接 Anthropic 再抽)+ 6 preset(openai/deepseek/moonshot/qwen/ollama/custom)+ SSE 解析纯函数 + base_url normalize + GET /v1/models ping + 5 IPC + dev_llm_test_stream(debug-only e2e)+ Events `dev.llm.token`/`done`;cargo test 31 → 62;8 维度 audit Pass(0 C/0 H/1 修 `Client::new()` fallback + import hack/ M2-M3-B.2 defer 3 项)| `455e005` | 2026-05-04 |
-| **用户主动复审 + 4 处治理同步缺口修补**(post-P0 follow-up audit;9 维度交叉审查 1 Critical + 2 High + 1 Low + 1 Medium 遗留;F1+F2+F3+F4 合并一笔纯 docs) | `99066a8` | 2026-05-04 |
+| **B.1 LLMProvider**(OpenAI 兼容 streaming chat completion + DPAPI 取 key)— `secrets.rs` CRUD + `llm.rs` `OpenAiCompatProvider`(KISS struct 不抽 trait;P1-R1 接 Anthropic 再抽)+ 6 preset(openai/deepseek/moonshot/qwen/ollama/custom)+ SSE 解析纯函数 + base_url normalize + GET /v1/models ping + 5 IPC + dev_llm_test_stream(debug-only e2e)+ Events `dev:llm:token`/`done`;cargo test 31 → 62;8 维度 audit Pass(0 C/0 H/1 修 `Client::new()` fallback + import hack/ M2-M3-B.2 defer 3 项)| `455e005` | 2026-05-04 |
 
 ---
 
@@ -54,6 +54,7 @@
 
 > **维护规则**:见 CLAUDE.md § CURRENT.md 维护规则。8 条上限,新决策推入时把最早 1 条挤出(完整版必先 sink 到 `progress/decisions-log.md`);每条 ≤ 200 字符。
 
+- **2026-05-04**:**Tauri 2.x event name 全量 `.` → `:`** — F.2 panic「event emit failed」暴露 Tauri Emitter 校验 event name 字符集不允许 `.`;架构 §711 28 条 + flows 22 处 + 代码 3 真 emit + 5 tracked 全量 in-place 改;不升 v1.1 — 命名规则适配运行时,IPC contract 语义未变
 - **2026-05-04**:**DB 集成测试缺位补齐** — tempfile + 手卷 migrations fixture(不引 sqlx::test 宏 / mock_app)+ 22 真实 DB 集成测试(secrets 3 + nickname 6 + memory 8 + persona 5)+ 14 inner helper 抽取;**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 必须 ensure conversation;cargo test 62 → 87
 - **2026-05-04**:**B.1 LLMProvider 落地** — `secrets.rs` CRUD + `llm.rs` OpenAiCompatProvider(KISS struct 不抽 trait,P1-R1 接 Anthropic 再抽)+ 6 preset + SSE 解析纯函数 + base_url normalize 兜底 DeepSeek 缺 v1 + GET /v1/models ping + dev_llm_test_stream e2e;架构 §6.1 trait 接口微调为 struct 直暴(待 doc-aligner 同步);cargo test 31→62
 - **2026-05-04**:vibecoding harness 研究 + plan §10 P1-3/P0-2 — 输出 plan 12 节(token 估算 / hook+slash command+permission 三类深度分析);6 笔 commit 落地(milestone-gate + settings.local.json 漂移清理 21 条);**关键学习**「研究阶段必先 git status 抓 baseline」
@@ -61,7 +62,6 @@
 - **2026-05-04**:code-audit A 桶 4 hardening 闭环 — M-1 crypto 整数截断(`check_input_size` helper)/ M-3 nickname UPSERT explicit 两步 / M-4 Mutex `lock_or_recover` poison / L-7 vite production esbuild.drop;cargo test 27→31 全过
 - **2026-05-03**:`/code-audit` 命令 + Run 1+2 首次扫描 — 8 维度纯漏洞扫描(注入/加密/数据完整性/输入边界/并发/错误处理/信息泄露/LLM 越狱)+ git diff 增量;`$branch` 33/33 = Pass(0 C/0 H/5 M/5 L/3 Won't);命名避开 Anthropic 内置 `/review`
 - **2026-05-03**:M1 D2/D3 hardening 5 笔 — start_drag 顺序倒置防 cursor_tracker 卡死 / hitbox NaN 输入加固 / persona seed sqlx::Tx + ON CONFLICT 与 migrations/002 UNIQUE INDEX 强绑定 / Hitbox saturating + 7 单测 / cursor_tracker init regression(42bb4c7 丢失 set_ignore)
-- **2026-05-03**:DEV-1 Admin/Debug 面板 — 独立 webview "dev" 窗口 + Ctrl+Shift+D + 4 tabs(IPC Playground / Tables / Events / Logs);`#[cfg(debug_assertions)]` + `import.meta.env.DEV` 双重排除 release;白名单 5 表防 SQL 注入
 
 ---
 

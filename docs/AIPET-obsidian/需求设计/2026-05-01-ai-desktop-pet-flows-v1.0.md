@@ -238,7 +238,7 @@
 [用户启动番茄钟]
  ├── 默认 25/5(可在工坊配置 5-90 / 1-30)  ↓
 [IDLE → FOCUS] + Scheduler 启动倒计时  ↓
-[Tick → 'pomodoro.tick' 事件 → 前端更新计时]  ↓
+[Tick → 'pomodoro:tick' 事件 → 前端更新计时]  ↓
  ├── 用户暂停
  │   ├── FOCUS → PAUSED(中间态)
  │   └── 用户恢复 → 回到 FOCUS,剩余时间继续
@@ -265,14 +265,14 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
  ├── 每 30 秒对当前 LLM Provider health endpoint ping
  └── 用户实际对话失败一次 → 立即触发探测  ↓
 [在线 → 离线](连续 2 次失败或系统报告离线)
- ├── 触发 'network.changed' { online: false, mode: 'offline_rule' }
+ ├── 触发 'network:changed' { online: false, mode: 'offline_rule' }
  ├── 前端显示横幅:"已切换到离线规则模式"
  ├── 当前正进行的对话 → 标 partial → 提示用户
  ├── ChatService 内部模式切换
  ├── LLM 游戏(故事接龙 / 咖啡店老板)在游戏列表灰显并提示"等联网"
  └── AI 拆解待办按钮灰显  ↓
 [离线 → 在线](连续 2 次探测成功)
- ├── 触发 'network.changed' { online: true, mode: 'online_chat' }
+ ├── 触发 'network:changed' { online: true, mode: 'online_chat' }
  ├── 前端隐藏横幅
  ├── TelemetryService 触发 flush 补发
  │   ├── 成功 → telemetry_queue 标记 flushed
@@ -296,7 +296,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
  ├── user_nickname 保持
  ├── pet_nickname → null(UI 显示新人格的 .soul.md.name)
  ├── 之前的 pet_nickname 移到 pet_nickname_previous(供"恢复"按钮)
- └── emit 'nickname.changed' { which: 'pet', value: null }  ↓
+ └── emit 'nickname:changed' { which: 'pet', value: null }  ↓
 [前端:替换桌宠形象]
  ├── 卸载当前 VRM 模型
  ├── 加载目标人格 avatar.pack
@@ -306,7 +306,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
 [ChatService:刷新 prompt 缓存]
  ├── 当前对话历史保留(用户体验:不清空记忆)
  └── 下条消息使用新人格的 system prompt  ↓
-[触发 'persona.activated' 事件 → 前端更新 UI]  ↓
+[触发 'persona:activated' 事件 → 前端更新 UI]  ↓
 [桌宠播一句"上线问候"(来自新人格 ## 问候 池)]  ↓
 [UI 提示] "想继续叫它'<previous>'?" → 点击 → IPC: nickname.restore_pet_previous
 ```
@@ -404,7 +404,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
         ├── 失败 → 静默重试 3 次 → 24h 后再说
         └── 成功 ↓
                [校验签名(M5+ 启用,M5 灰度期不签名,ADR-013)]  ↓
-               [触发 'updater.available' 事件]  ↓
+               [触发 'updater:available' 事件]  ↓
                [用户点"现在更新"]  ↓
                [关闭对话面板 / 工坊 / 设置 / 游戏舱 → 保留桌宠]  ↓
                [PET 进入 UPDATING 状态 → 应用安装 → 重启]
@@ -483,7 +483,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
         [PersonaService.get_offline_template(category)]  ← 不调 LLM
          ↓ 抽样 1 条
         [写入 proactive_care_log]  ↓
-        emit 'proactive_care.fired' { logId, message }  ↓
+        emit 'proactive_care:fired' { logId, message }  ↓
         [前端] 桌宠头顶气泡 + 心情图标短暂变化  ↓
         [用户响应]
          ├── 点击气泡 → 弹出对话面板,预填关心文案
@@ -540,7 +540,7 @@ FOCUS 期间 `mood = focused`(覆盖其他);自由活动 / 日常时段表 / 主
  - workshop / settings / game_room 窗口(如打开)  ↓
 [托盘图标变更]"摸鱼中"  ↓
 [BossKeyState.hidden = true]  ↓
-emit 'boss_key.toggled' { hidden: true }
+emit 'boss_key:toggled' { hidden: true }
 ```
 
 ### 12.2 隐藏期间的事件处理
@@ -568,7 +568,7 @@ emit 'boss_key.toggled' { hidden: true }
  │   "回来了?刚才我留了 N 条提醒在这"
  └── = 1 条 → 直接展示该提醒  ↓
 [BossKeyState.hidden = false]  ↓
-emit 'boss_key.toggled' { hidden: false }
+emit 'boss_key:toggled' { hidden: false }
 ```
 
 ### 12.4 失败/异常分支
@@ -648,7 +648,7 @@ emit 'boss_key.toggled' { hidden: false }
  ├── 通过 ProactiveCareService 触发关心(category='celebration')
  │   - 不占用主动关心 4 次/日额度
  │   - 同一时间点多个里程碑命中 → 合并为一条庆祝消息
- ├── emit 'milestone.reached' { id, message }
+ ├── emit 'milestone:reached' { id, message }
  └── Telemetry 上报  ↓
 [前端] 桌宠播一句应景的话 + 视情况展示一次特殊动作(如撒花、鞠躬)
 ```
@@ -680,7 +680,7 @@ emit 'boss_key.toggled' { hidden: false }
         触发 ProactiveCareService(category='celebration', trigger='milestone')
          ├── 不占用主动关心日额度
          └── 桌宠播一句应景庆祝(人格化模板 ## 庆祝 池抽样)  ↓
-        emit 'milestone.user_anniversary' { key, display_name }  ↓
+        emit 'milestone:user_anniversary' { key, display_name }  ↓
         Telemetry: 'milestone_reached' { milestone_id, category: 'user_anniversary' }
 ```
 
@@ -712,7 +712,7 @@ emit 'boss_key.toggled' { hidden: false }
  ├── PetCanvas 播放动作
  ├── mood 临时变化(transient,5 秒后 revert,不写 pet_runtime_state)
  └── if voice_id → IPC: voice.play(voice_id)  ↓
-emit 'pet.interaction_reacted' + Telemetry
+emit 'pet:interaction_reacted' + Telemetry
 ```
 
 ### 15.2 长按 / 右键
@@ -746,7 +746,7 @@ emit + Telemetry
  └── 维护 drag_events: VecDeque(保留最近 30s)  ↓
      drag_events.len() ≥ 3?
      ├── 是 → Reaction { action: 'protest', mood_delta: { mood: annoyed, transient_ms: 5000 }, voice_id: 'protest' }
-     │       ↓ emit 'pet.protest_triggered' { drag_count, will_revert_in_ms: 5000 }
+     │       ↓ emit 'pet:protest_triggered' { drag_count, will_revert_in_ms: 5000 }
      │       ↓ 5 秒后 LivingPetService.tick() revert 到 base mood
      │       ↓ **不写入 pet_runtime_state.mood**
      └── 否 → 普通 Reaction
@@ -782,7 +782,7 @@ emit IdleEvent::KeyboardBurst { events_per_min, duration_s: 30 }  ↓
  ├── tier='paid' 在 MVP 期被强制过滤(list_inventory 已不返回)
  ├── 更新 accessories_inventory.is_equipped
  └── 返回 ok  ↓
-emit 'wardrobe.changed' { equipped: [...] }  ↓
+emit 'wardrobe:changed' { equipped: [...] }  ↓
 [Frontend PetCanvas]
  ├── 卸载当前 sticker layer
  ├── 加载新 sticker(含锚点,VRM humanoid bone attach,ADR-003)
@@ -831,17 +831,17 @@ emit 'wardrobe.changed' { equipped: [...] }  ↓
 [IPC] voice.play(voice_id)  ↓
 [VoiceEffectPlayer]
  ├── is_muted_now()?
- │   ├── global_mute? 是 → emit 'voice.muted_by_quiet_hour' { reason: 'global_mute' } → 静默
+ │   ├── global_mute? 是 → emit 'voice:muted_by_quiet_hour' { reason: 'global_mute' } → 静默
  │   └── 当前是工作日 quiet_weekday?
  │       └── 当前时间在 quiet_ranges 内?
- │           ├── 是 → emit 'voice.muted_by_quiet_hour' { reason: 'quiet_hour' } → 静默
+ │           ├── 是 → emit 'voice:muted_by_quiet_hour' { reason: 'quiet_hour' } → 静默
  │           └── 否 → 继续
  ├── 加载 assets/voice_packs/<active_pack>/<voice_id>.ogg
  │   ├── 文件不存在 → 降级到 default pack 同名 voice_id
- │   │   └── 仍不存在 → emit 'voice.play_error' → 静默
+ │   │   └── 仍不存在 → emit 'voice:play_error' → 静默
  │   └── 存在 → 继续
  └── HTML5 Audio.play(volume = voice_settings.volume / 100)  ↓
-emit 'voice.played' { voice_id, pack_id }
+emit 'voice:played' { voice_id, pack_id }
 [Telemetry] 不上报 voice_id(聚合到 category 即可)
 ```
 
@@ -860,7 +860,7 @@ emit 'voice.played' { voice_id, pack_id }
  ├── kind=local → 不检查网络
  ├── 创建 game_session 记录(kind='local')
  └── 返回 sessionId  ↓
-emit 'game.session_started'  ↓
+emit 'game:session_started'  ↓
 [Frontend] 进入游戏舱 GameRoom 窗口(480 × 600,ADR-012)
 [桌宠状态 IN_GAME 叠加态]
 ```
@@ -892,7 +892,7 @@ emit 'game.session_started'  ↓
  ├── 写 game_sessions.ended_at + result
  ├── saveAsDiary=true → 生成日记片段写 diary_drafts
  └── 30 天后未保存的 game_sessions 在每次启动期清理  ↓
-emit 'game.session_ended'  ↓
+emit 'game:session_ended'  ↓
 [Frontend] 关闭游戏舱,回到正常态(IN_GAME 叠加态退出)
 ```
 
@@ -909,7 +909,7 @@ emit 'game.session_ended'  ↓
  ├── 加载 game_scenes/story_relay.yaml(场景 system_prompt + 拒答模板,ADR-007)
  ├── 创建 game_session(kind='llm', total_tokens=0)
  └── 返回 sessionId  ↓
-emit 'game.session_started'
+emit 'game:session_started'
 ```
 
 ### 19.2 一轮
@@ -930,9 +930,9 @@ emit 'game.session_started'
  │   ├── 命中违禁 → 替换为 story_relay.yaml.refusals 抽样(人格化拒答)
  │   └── 通过 → 输出
  ├── 累计 total_tokens
- │   └── total_tokens >= 2000 → emit 'game.token_budget_warning' + 返回 friendly 收尾文案
+ │   └── total_tokens >= 2000 → emit 'game:token_budget_warning' + 返回 friendly 收尾文案
  └── 写 game_session_events  ↓
-emit 'chat.token' 流式 + 'chat.done'(复用对话事件)  ↓
+emit 'chat:token' 流式 + 'chat:done'(复用对话事件)  ↓
 [Frontend] 流式渲染
 ```
 
@@ -973,7 +973,7 @@ emit 'chat.token' 流式 + 'chat.done'(复用对话事件)  ↓
  ├── 校验:长度 ≤ 16,去控制字符
  ├── 写 nicknames 表(pet_nickname='毛毛')
  └── 返回 ok  ↓
-emit 'nickname.changed' { which: 'pet', value: '毛毛' }  ↓
+emit 'nickname:changed' { which: 'pet', value: '毛毛' }  ↓
 [Frontend 全局 UI 更新]
  - 对话面板标题
  - 托盘菜单
@@ -990,7 +990,7 @@ emit 'nickname.changed' { which: 'pet', value: '毛毛' }  ↓
  ├── 当前 pet_nickname = "毛毛"
  ├── 移到 pet_nickname_previous = "毛毛"
  ├── pet_nickname = null(UI 显示新人格的 .soul.md.name)
- └── emit 'nickname.changed' { which: 'pet', value: null }  ↓
+ └── emit 'nickname:changed' { which: 'pet', value: null }  ↓
 [Frontend] 显示新人格名 "阿吉"
 [UI 提示] "想继续叫它'毛毛'?" → 点击 → IPC: nickname.restore_pet_previous
 ```
@@ -1003,7 +1003,7 @@ emit 'nickname.changed' { which: 'pet', value: '毛毛' }  ↓
 [NicknameService]
  ├── 写 nicknames.user_nickname='小张'
  └── 返回 ok  ↓
-emit 'nickname.changed' { which: 'user', value: '小张' }  ↓
+emit 'nickname:changed' { which: 'user', value: '小张' }  ↓
 [ChatService prompt 拼装时注入 username='小张']
 [离线模板渲染时 {username} → '小张']  ↓
 切换人格不影响(user_nickname 保持)

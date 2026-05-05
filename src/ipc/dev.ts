@@ -64,13 +64,13 @@ export const COMMAND_REGISTRY: CommandMeta[] = [
   },
   {
     name: 'nickname_set_pet',
-    description: 'F.2 设置 pet_nickname(自动备份 previous + emit nickname.changed)',
+    description: 'F.2 设置 pet_nickname(自动备份 previous + emit nickname:changed)',
     params: [{ name: 'name', type: 'string', required: true }],
     category: 'nickname',
   },
   {
     name: 'nickname_set_user',
-    description: 'F.2 设置 user_nickname + emit nickname.changed',
+    description: 'F.2 设置 user_nickname + emit nickname:changed',
     params: [{ name: 'name', type: 'string', required: true }],
     category: 'nickname',
   },
@@ -114,7 +114,7 @@ export const COMMAND_REGISTRY: CommandMeta[] = [
   },
   {
     name: 'dev_llm_test_stream',
-    description: 'B.1 debug-only 端到端 streaming;Events tab 看 dev.llm.token 流',
+    description: 'B.1 debug-only 端到端 streaming;Events tab 看 dev:llm:token 流',
     params: [
       { name: 'provider', type: 'string', required: true },
       { name: 'baseUrl', type: 'string', required: true },
@@ -147,16 +147,18 @@ export const COMMAND_REGISTRY: CommandMeta[] = [
 ]
 
 /// 架构 §711 列出的 IPC events — EventLog tab 订阅这些
+/// 注:Tauri 2.x event name 仅允许 [a-zA-Z0-9\-/:_],不允许 `.`
+/// 历史 `xxx.yyy` 命名会触发 emit 运行时 panic,2026-05-04 全量改 `:` 分隔
 export const TRACKED_EVENTS: readonly string[] = [
-  'nickname.changed',
-  'persona.activated',
-  'network.changed',
+  'nickname:changed',
+  'persona:activated',
+  'network:changed',
   'shortcut:chat',
   'shortcut:boss-key',
   'tray:show',
   'tray:hide',
   'tray:settings',
   // B.1 dev_llm_test_stream(debug-only;release build 不会触发,留这里 dev 期监控)
-  'dev.llm.token',
-  'dev.llm.done',
+  'dev:llm:token',
+  'dev:llm:done',
 ] as const

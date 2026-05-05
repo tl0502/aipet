@@ -666,52 +666,54 @@ updater.install(): Promise<void>
 
 ### 5.2 Events(主进程 → 前端)
 
+> **命名约束**(Tauri 2.x runtime):event name 仅允许 `[a-zA-Z0-9\-/:_]`,不允许 `.`(emit 时会 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted」)。本表 2026-05-04 起统一用 `:` 分隔(与既有 `shortcut:chat` / `tray:show` 约定一致),旧 `xxx.yyy` 命名已 superseded。
+
 ```ts
 // 对话
-'chat.token'         { messageId, delta }              // 流式 token
-'chat.done'          { messageId, fullText, latencyMs }
-'chat.error'         { messageId, code, message }
+'chat:token'         { messageId, delta }              // 流式 token
+'chat:done'          { messageId, fullText, latencyMs }
+'chat:error'         { messageId, code, message }
 
 // 任务
-'reminder.fired'     { reminderId, priority }
-'pomodoro.tick'      { sessionId, remainingMs, phase }
+'reminder:fired'     { reminderId, priority }
+'pomodoro:tick'      { sessionId, remainingMs, phase }
 
 // 桌宠状态
-'pet.state_changed'      { from, to, sub_from?, sub_to?, overlay_added?, overlay_removed?, reason }
-'pet.mood_changed'       { from, to, transient: bool, trigger }
-'pet.wandering'          { phase: 'start'|'end', targetX, targetY }
-'pet.energy_changed'     { value }                      // 节流,每 1 分钟最多一次
-'pet.daily_action'       { time_slot, action_id }
+'pet:state_changed'      { from, to, sub_from?, sub_to?, overlay_added?, overlay_removed?, reason }
+'pet:mood_changed'       { from, to, transient: bool, trigger }
+'pet:wandering'          { phase: 'start'|'end', targetX, targetY }
+'pet:energy_changed'     { value }                      // 节流,每 1 分钟最多一次
+'pet:daily_action'       { time_slot, action_id }
 
 // 物理交互
-'pet.interaction_reacted' { hitbox, action_id, voice_id?, mood_change? }
-'pet.protest_triggered'   { drag_count, will_revert_in_ms }
+'pet:interaction_reacted' { hitbox, action_id, voice_id?, mood_change? }
+'pet:protest_triggered'   { drag_count, will_revert_in_ms }
 
 // 主动关心 + 里程碑
-'proactive_care.fired'      { logId, category, message }
-'milestone.reached'         { id, category, message }
-'milestone.user_anniversary' { key, display_name }
+'proactive_care:fired'      { logId, category, message }
+'milestone:reached'         { id, category, message }
+'milestone:user_anniversary' { key, display_name }
 
 // 摸鱼 + 文件拖入
-'boss_key.toggled'        { hidden }
-'file_drop.bubbles_shown' { paths, available }
+'boss_key:toggled'        { hidden }
+'file_drop:bubbles_shown' { paths, available }
 
 // 声音 + 装扮
-'voice.played'              { voice_id, pack_id }
-'voice.muted_by_quiet_hour' { voice_id, reason: 'quiet_hour'|'global_mute' }
-'wardrobe.changed'          { equipped: AccessoryMeta[] }
-'wardrobe.seasonal_suggest' { suggestion_id, accessory_id, accept_url }
+'voice:played'              { voice_id, pack_id }
+'voice:muted_by_quiet_hour' { voice_id, reason: 'quiet_hour'|'global_mute' }
+'wardrobe:changed'          { equipped: AccessoryMeta[] }
+'wardrobe:seasonal_suggest' { suggestion_id, accessory_id, accept_url }
 
 // 游戏
-'game.session_started'      { session_id, game_id, kind }
-'game.token_budget_warning' { session_id, used, limit }
-'game.session_ended'        { session_id, saved_as_diary, total_tokens }
+'game:session_started'      { session_id, game_id, kind }
+'game:token_budget_warning' { session_id, used, limit }
+'game:session_ended'        { session_id, saved_as_diary, total_tokens }
 
 // 昵称 + 网络 + 升级
-'nickname.changed'          { which: 'pet'|'user', value }
-'network.changed'           { online: boolean, mode: 'online_chat'|'offline_rule' }
-'persona.activated'         { id, name }
-'updater.available'         { version, mandatory }
+'nickname:changed'          { which: 'pet'|'user', value }
+'network:changed'           { online: boolean, mode: 'online_chat'|'offline_rule' }
+'persona:activated'         { id, name }
+'updater:available'         { version, mandatory }
 ```
 
 ### 5.3 类型与版本约定

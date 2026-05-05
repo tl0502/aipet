@@ -2,7 +2,7 @@
 //
 // 范围(plan F.2):
 // - get_pet / get_user / set_pet / set_user / restore_pet 5 个 service 方法
-// - emit `nickname.changed` event(架构 §711 payload: { which: 'pet'|'user', value })
+// - emit `nickname:changed` event(架构 §711 payload: { which: 'pet'|'user', value })
 //
 // Schema(migrations/001_init.sql 行 68-74)是单行表(id=1 CHECK):
 //   pet_nickname TEXT (nullable, NULL 时 fallback 到 active persona 的 name)
@@ -23,7 +23,7 @@ use sqlx::{ConnectOptions, Connection, SqliteConnection};
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 use thiserror::Error;
 
-const NICKNAME_CHANGED_EVENT: &str = "nickname.changed";
+const NICKNAME_CHANGED_EVENT: &str = "nickname:changed";
 const FALLBACK_PET_NAME: &str = "默默";
 
 #[derive(Debug, Error)]
@@ -98,7 +98,7 @@ pub async fn get_user_nickname<R: Runtime>(
 }
 
 /// 设置 pet_nickname。自动把当前值搬到 pet_nickname_previous(为后续 restore 备份)。
-/// 触发 `nickname.changed` { which: "pet", value: Some(name) }。
+/// 触发 `nickname:changed` { which: "pet", value: Some(name) }。
 ///
 /// 实现走 explicit 两步(SELECT 当前 user_nickname → INSERT/UPDATE 显式 bind),
 /// 避免老实现的子查询路径在 nicknames 行被外部 DELETE 后丢 user_nickname:
@@ -119,7 +119,7 @@ pub async fn set_pet_nickname<R: Runtime>(
 }
 
 /// 设置 user_nickname。
-/// 触发 `nickname.changed` { which: "user", value: Some(name) }。
+/// 触发 `nickname:changed` { which: "user", value: Some(name) }。
 pub async fn set_user_nickname<R: Runtime>(
     app: &AppHandle<R>,
     name: String,
@@ -135,7 +135,7 @@ pub async fn set_user_nickname<R: Runtime>(
 
 /// pet_nickname 与 pet_nickname_previous 原子 swap(用户可来回切两个曾用名)。
 /// 若 previous 为 NULL,返回 NothingToRestore 错误,调用方提示 UI。
-/// 触发 `nickname.changed` { which: "pet", value: <swap 后的 current> }。
+/// 触发 `nickname:changed` { which: "pet", value: <swap 后的 current> }。
 pub async fn restore_pet_nickname<R: Runtime>(
     app: &AppHandle<R>,
 ) -> Result<Option<String>, NicknameError> {
@@ -312,8 +312,10 @@ mod tests {
 
     #[test]
     fn event_name_matches_arch_contract() {
-        // 架构 §711 IPC event 表第 22 行:'nickname.changed'
-        assert_eq!(NICKNAME_CHANGED_EVENT, "nickname.changed");
+        // 架构 §711 IPC event 表第 22 行:'nickname:changed'
+        // 注:Tauri 2.x event name 仅允许 [a-zA-Z0-9\-/:_],不允许 `.`
+        // 历史 `nickname.changed` 命名运行时报 "event emit failed",2026-05-04 全量改 `:`
+        assert_eq!(NICKNAME_CHANGED_EVENT, "nickname:changed");
     }
 
     // ===== DB 集成测试(2026-05-04 test-coverage P0)=====
