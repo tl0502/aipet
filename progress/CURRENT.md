@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`(本笔待 finalize) feat(chat): B.2 ChatService MVP — 安全前缀 + persona + nickname + 流式` ← `39b6279 fix(events): Tauri 2.x event name 全量 . → :`
+- **Last commit**:`24199d8 feat(chat): B.2 ChatService MVP — 安全前缀 + persona + nickname + 流式`(本笔)← `39b6279 fix(events): Tauri 2.x event name 全量 . → :`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-05(B.2 ChatService MVP 落地 — services/chat.rs + commands/chat.rs 双模块;SAFETY_PREFIX_V1 ADR-006 字面 + compose_system_prompt 占位替换 + run_chat orchestrator + tokio CancellationToken + 4 IPC;架构 §5.1 in-place 加 IPC command 命名注脚不升 v1.1;cargo test 87 → 101 全过)
 
@@ -22,7 +22,7 @@
 
 | Story | Commit | Date |
 |---|---|---|
-| **feat(chat): B.2 ChatService MVP**(services/chat.rs 552 行 + commands/chat.rs 152 行;SAFETY_PREFIX_V1 ADR-006 字面 5 条 + zh-CN 危机资源 + compose_system_prompt({pet_name}/{username} 替换;{username} 回退「朋友」)+ ensure_conversation_with_conn 守 FK + load_active_persona JOIN snapshots 取最新 version + run_chat orchestrator(write user → fetch N=20 history → tokio::select! cancel/stream → emit chat:token → write assistant + emit chat:done)+ AppState chat_cancellations + tokio_util CancellationToken + 4 IPC(chat_send/cancel/history/conversation_create)+ DevPanel +4 commands +3 events;架构 §5.1 in-place 加 IPC command 命名注脚不升 v1.1;cargo test 87→101)| `(待 finalize)` | 2026-05-05 |
+| **feat(chat): B.2 ChatService MVP**(services/chat.rs 552 行 + commands/chat.rs 152 行;SAFETY_PREFIX_V1 ADR-006 字面 5 条 + zh-CN 危机资源 + compose_system_prompt({pet_name}/{username} 替换;{username} 回退「朋友」)+ ensure_conversation_with_conn 守 FK + load_active_persona JOIN snapshots 取最新 version + run_chat orchestrator(write user → fetch N=20 history → tokio::select! cancel/stream → emit chat:token → write assistant + emit chat:done)+ AppState chat_cancellations + tokio_util CancellationToken + 4 IPC(chat_send/cancel/history/conversation_create)+ DevPanel +4 commands +3 events;架构 §5.1 in-place 加 IPC command 命名注脚不升 v1.1;cargo test 87→101)| `24199d8` | 2026-05-05 |
 | **fix(events): Tauri 2.x event name 全量 `.` → `:`**(用户手测 F.2 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted」;代码层 nickname.rs / llm.rs / dev.ts 真 emit 3 + tracked 5 + persona/network 预防;基线 in-place 修架构 §5.2 28 条 + 顶部加 Tauri 约束注 + flows v1.0 22 处;不升 v1.1;cargo test 87 全过)| `39b6279` | 2026-05-04 |
 | **fix(dev): TablesView 前端表白名单二次拦截删除**(D2 第一版 ALLOWED 5 张未随 97673ab 后端放开同步,dev panel 22 张表灰着不可点;KISS 删前端拦截后端 dev.rs:90 单点维护,Err 自带 allow-list 文本;dev-only release 编译期排除无安全风险)| `b843a07` | 2026-05-04 |
 | **test(services): DB 集成测试缺位补齐**(B.1 实施暴露 7 services / 62 单测全是纯逻辑,DB 写入路径完整周期没真跑过 → tempfile + 手卷 migrations fresh_db fixture + 22 真实 DB 集成测试 secrets 3 / nickname 6 / memory 8 / persona 5 + 3 fixture self-test + 抽 14 `_with_conn` inner helper(行为等价 refactor for testability);**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 ChatService 必须 ensure conversation 存在 — `insert_message_rejects_unknown_conversation_id` 守住此契约;cargo test 62 → 87)| `4abceea` | 2026-05-04 |
