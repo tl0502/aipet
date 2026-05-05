@@ -4,7 +4,7 @@
 
 - **Milestone**:M1 W1 D3(进行中)
 - **Active branch**:`feat/m1-d2-window-interaction`
-- **Last commit**:`<pending> fix(events): Tauri 2.x event name 全量 . → :(代码 + 架构 §5.2 + flows v1.0 + decisions-log)`(本笔)← `94df426 docs(progress): finalize SHA b843a07 + Recently Completed 维护`
+- **Last commit**:`39b6279 fix(events): Tauri 2.x event name 全量 . → :(代码 + 架构 §5.2 + flows v1.0)`(本笔)← `94df426 docs(progress): finalize SHA b843a07 + Recently Completed 维护`
 - **Tag**:none yet(M1 出口达成后打 `v0.M1.0`)
 - **Last updated**:2026-05-04(用户手测 F.2 set_pet_nickname 触发 Tauri 2.x event name panic — `.` 不允许;3 处真 emit + 5 处 TS tracked + 架构 §5.2 28 条 + flows v1.0 22 处全量 `.` → `:`;cargo test 87 passed)
 
@@ -22,7 +22,7 @@
 
 | Story | Commit | Date |
 |---|---|---|
-| **fix(events): Tauri 2.x event name 全量 `.` → `:`**(用户手测 F.2 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted」;代码层 nickname.rs / llm.rs / dev.ts 真 emit 3 + tracked 5 + persona/network 预防;基线 in-place 修架构 §5.2 28 条 + 顶部加 Tauri 约束注 + flows v1.0 22 处;不升 v1.1;cargo test 87 全过)| `<pending>` | 2026-05-04 |
+| **fix(events): Tauri 2.x event name 全量 `.` → `:`**(用户手测 F.2 panic「event emit failed: only alphanumeric, '-', '/', ':', '_' permitted」;代码层 nickname.rs / llm.rs / dev.ts 真 emit 3 + tracked 5 + persona/network 预防;基线 in-place 修架构 §5.2 28 条 + 顶部加 Tauri 约束注 + flows v1.0 22 处;不升 v1.1;cargo test 87 全过)| `39b6279` | 2026-05-04 |
 | **fix(dev): TablesView 前端表白名单二次拦截删除**(D2 第一版 ALLOWED 5 张未随 97673ab 后端放开同步,dev panel 22 张表灰着不可点;KISS 删前端拦截后端 dev.rs:90 单点维护,Err 自带 allow-list 文本;dev-only release 编译期排除无安全风险)| `b843a07` | 2026-05-04 |
 | **test(services): DB 集成测试缺位补齐**(B.1 实施暴露 7 services / 62 单测全是纯逻辑,DB 写入路径完整周期没真跑过 → tempfile + 手卷 migrations fresh_db fixture + 22 真实 DB 集成测试 secrets 3 / nickname 6 / memory 8 / persona 5 + 3 fixture self-test + 抽 14 `_with_conn` inner helper(行为等价 refactor for testability);**[HIGH] sqlx 默认 PRAGMA foreign_keys=ON** B.2 ChatService 必须 ensure conversation 存在 — `insert_message_rejects_unknown_conversation_id` 守住此契约;cargo test 62 → 87)| `4abceea` | 2026-05-04 |
 | **fix(db): plugin preload + builder API + dev panel 表白名单全开**(B.1 e2e 测试暴露 3 处 dev/DB 基础设施缺口:① tauri.conf.json 加 `plugins.sql.preload` 让 tauri-plugin-sql 2.x migrations 真正跑起来,aipet.db 之前从未被创建 ② commands/dev.rs `open_conn` 改 builder API 避开 Windows 反斜杠 `from_str("sqlite:C:\\...")` 失败 ③ ALLOWED_TABLES 5 → 27 全 schema 白名单)| `97673ab` | 2026-05-04 |
